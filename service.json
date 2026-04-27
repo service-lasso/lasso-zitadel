@@ -1,0 +1,83 @@
+{
+  "id": "zitadel",
+  "name": "ZITADEL",
+  "description": "Release-backed ZITADEL identity service. Requires PostgreSQL and a stable master key before enabling.",
+  "version": "v4.14.0",
+  "enabled": false,
+  "ports": {
+    "http": 18084
+  },
+  "commandline": {
+    "win32": " start-from-init --masterkeyFromEnv --tlsMode disabled",
+    "darwin": " start-from-init --masterkeyFromEnv --tlsMode disabled",
+    "linux": " start-from-init --masterkeyFromEnv --tlsMode disabled",
+    "default": " start-from-init --masterkeyFromEnv --tlsMode disabled"
+  },
+  "env": {
+    "ZITADEL_PORT": "${HTTP_PORT}",
+    "ZITADEL_EXTERNALPORT": "${HTTP_PORT}",
+    "ZITADEL_EXTERNALDOMAIN": "localhost",
+    "ZITADEL_EXTERNALSECURE": "false",
+    "ZITADEL_TLS_ENABLED": "false"
+  },
+  "globalenv": {
+    "ZITADEL_HTTP_PORT": "${HTTP_PORT}",
+    "ZITADEL_URL": "http://localhost:${HTTP_PORT}/",
+    "ZITADEL_HEALTH_URL": "http://127.0.0.1:${HTTP_PORT}/debug/ready"
+  },
+  "urls": [
+    {
+      "label": "console",
+      "url": "http://localhost:${HTTP_PORT}/ui/console/",
+      "kind": "local"
+    },
+    {
+      "label": "health",
+      "url": "http://127.0.0.1:${HTTP_PORT}/debug/ready",
+      "kind": "local"
+    }
+  ],
+  "artifact": {
+    "kind": "archive",
+    "source": {
+      "type": "github-release",
+      "repo": "service-lasso/lasso-zitadel",
+      "channel": "latest"
+    },
+    "platforms": {
+      "win32": {
+        "assetName": "lasso-zitadel-v4.14.0-win32.zip",
+        "archiveType": "zip",
+        "command": ".\\zitadel.exe",
+        "args": ["--version"]
+      },
+      "linux": {
+        "assetName": "lasso-zitadel-v4.14.0-linux.tar.gz",
+        "archiveType": "tar.gz",
+        "command": "./zitadel",
+        "args": ["--version"]
+      },
+      "darwin": {
+        "assetName": "lasso-zitadel-v4.14.0-darwin.tar.gz",
+        "archiveType": "tar.gz",
+        "command": "./zitadel",
+        "args": ["--version"]
+      }
+    }
+  },
+  "install": {
+    "files": [
+      {
+        "path": "./runtime/README.md",
+        "content": "# ZITADEL Service Lasso Runtime\n\nThis service is disabled by default because ZITADEL requires PostgreSQL and a stable 32-byte master key.\n\nBefore enabling, provide these environment variables to the Service Lasso process:\n\n- ZITADEL_DATABASE_POSTGRES_DSN=postgresql://user:password@host:5432/postgres?sslmode=disable\n- ZITADEL_MASTERKEY=<exactly-32-byte-master-key>\n\nThe default command is `start-from-init --masterkeyFromEnv --tlsMode disabled` for local development. For production/day-two operation, split init/setup/start according to the ZITADEL docs.\n"
+      }
+    ]
+  },
+  "healthcheck": {
+    "type": "http",
+    "url": "http://127.0.0.1:${HTTP_PORT}/debug/ready",
+    "expected_status": 200,
+    "retries": 80,
+    "interval": 500
+  }
+}
