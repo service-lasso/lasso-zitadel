@@ -60,10 +60,10 @@ the consuming application owns the database and operational policy.
 ## Service Lasso OIDC bootstrap
 
 `npm run bootstrap:oidc` provides the Service Lasso-side bootstrap contract for
-the ZITADEL OIDC application used by the shared auth facade. The script is safe
+the ZITADEL OIDC application used by the Traefik OIDC middleware. The script is safe
 to run repeatedly: it compares a supplied state snapshot with the desired
 Service Lasso OIDC project/application settings and emits a create, update, or
-already-present plan plus metadata that the auth facade can consume.
+already-present plan plus metadata that the Traefik OIDC middleware can consume.
 
 Default local SSO endpoints:
 
@@ -73,7 +73,7 @@ redirect URI:           https://auth.servicelasso.localhost/oauth2/callback
 post-logout redirect:   https://auth.servicelasso.localhost/logout/callback
 allowed origins:        https://auth.servicelasso.localhost
                         https://serviceadmin.servicelasso.localhost
-client secret storage:  secretref://@secretsbroker/zitadel/service-lasso-auth-facade/client-secret
+client secret storage:  secretref://@secretsbroker/zitadel/traefik-oidc-auth/client-secret
 metadata output:        runtime/service-lasso-oidc.metadata.json
 ```
 
@@ -100,15 +100,15 @@ bootstrap contract rather than ZITADEL internals:
     "service-lasso": {
       "name": "Service Lasso",
       "applications": {
-        "service-lasso-auth-facade": {
-          "name": "Service Lasso auth facade",
+        "traefik-oidc-auth": {
+          "name": "Service Lasso Traefik OIDC middleware",
           "redirectUris": ["https://auth.servicelasso.localhost/oauth2/callback"],
           "postLogoutRedirectUris": ["https://auth.servicelasso.localhost/logout/callback"],
           "allowedOrigins": ["https://auth.servicelasso.localhost"],
           "grantTypes": ["authorization_code", "refresh_token"],
           "responseTypes": ["code"],
           "authMethod": "client_secret_basic",
-          "clientSecretRef": "secretref://@secretsbroker/zitadel/service-lasso-auth-facade/client-secret"
+          "clientSecretRef": "secretref://@secretsbroker/zitadel/traefik-oidc-auth/client-secret"
         }
       }
     }
