@@ -3,8 +3,8 @@
     "service-lasso": {
       "name": "Service Lasso",
       "applications": {
-        "service-lasso-auth-facade": {
-          "name": "Service Lasso auth facade",
+        "traefik-oidc-auth": {
+          "name": "Service Lasso Traefik OIDC middleware",
           "redirectUris": ["https://auth.servicelasso.localhost/oauth2/callback"],
           "postLogoutRedirectUris": ["https://auth.servicelasso.localhost/logout/callback"],
           "allowedOrigins": [
@@ -14,7 +14,7 @@
           "grantTypes": ["authorization_code", "refresh_token"],
           "responseTypes": ["code"],
           "authMethod": "client_secret_basic",
-          "clientSecretRef": "secretref://@secretsbroker/zitadel/service-lasso-auth-facade/client-secret"
+          "clientSecretRef": "secretref://@secretsbroker/zitadel/traefik-oidc-auth/client-secret"
         }
       }
     }

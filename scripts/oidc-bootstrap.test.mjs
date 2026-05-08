@@ -45,8 +45,8 @@ function assertNoSecretMaterial(value) {
       "service-lasso": {
         name: "Service Lasso",
         applications: {
-          "service-lasso-auth-facade": {
-            name: "Service Lasso auth facade",
+          "traefik-oidc-auth": {
+            name: "Service Lasso Traefik OIDC middleware",
             redirectUris: serviceLassoOidcBootstrapDefaults.redirectUris,
             postLogoutRedirectUris: serviceLassoOidcBootstrapDefaults.postLogoutRedirectUris,
             allowedOrigins: serviceLassoOidcBootstrapDefaults.allowedOrigins,
@@ -71,8 +71,8 @@ function assertNoSecretMaterial(value) {
       "service-lasso": {
         name: "Old Service Lasso",
         applications: {
-          "service-lasso-auth-facade": {
-            name: "Service Lasso auth facade",
+          "traefik-oidc-auth": {
+            name: "Service Lasso Traefik OIDC middleware",
             redirectUris: ["https://auth.servicelasso.localhost/old-callback"],
             postLogoutRedirectUris: [],
             allowedOrigins: ["https://auth.servicelasso.localhost"],

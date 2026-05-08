@@ -5,8 +5,8 @@ import { pathToFileURL } from "node:url";
 export const serviceLassoOidcBootstrapDefaults = Object.freeze({
   projectKey: "service-lasso",
   projectName: "Service Lasso",
-  applicationKey: "service-lasso-auth-facade",
-  applicationName: "Service Lasso auth facade",
+  applicationKey: "traefik-oidc-auth",
+  applicationName: "Service Lasso Traefik OIDC middleware",
   issuer: "https://zitadel.servicelasso.localhost",
   redirectUris: ["https://auth.servicelasso.localhost/oauth2/callback"],
   postLogoutRedirectUris: ["https://auth.servicelasso.localhost/logout/callback"],
@@ -17,7 +17,7 @@ export const serviceLassoOidcBootstrapDefaults = Object.freeze({
   grantTypes: ["authorization_code", "refresh_token"],
   responseTypes: ["code"],
   authMethod: "client_secret_basic",
-  clientSecretRef: "secretref://@secretsbroker/zitadel/service-lasso-auth-facade/client-secret",
+  clientSecretRef: "secretref://@secretsbroker/zitadel/traefik-oidc-auth/client-secret",
   exportedMetadataPath: "runtime/service-lasso-oidc.metadata.json",
 });
 
