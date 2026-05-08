@@ -57,11 +57,78 @@ For production/day-two operation, ZITADEL recommends separating init, setup, and
 runtime phases. This package gives Service Lasso a working binary and manifest;
 the consuming application owns the database and operational policy.
 
+## Service Lasso OIDC bootstrap
+
+`npm run bootstrap:oidc` provides the Service Lasso-side bootstrap contract for
+the ZITADEL OIDC application used by the shared auth facade. The script is safe
+to run repeatedly: it compares a supplied state snapshot with the desired
+Service Lasso OIDC project/application settings and emits a create, update, or
+already-present plan plus metadata that the auth facade can consume.
+
+Default local SSO endpoints:
+
+```text
+issuer:                 https://zitadel.servicelasso.localhost
+redirect URI:           https://auth.servicelasso.localhost/oauth2/callback
+post-logout redirect:   https://auth.servicelasso.localhost/logout/callback
+allowed origins:        https://auth.servicelasso.localhost
+                        https://serviceadmin.servicelasso.localhost
+client secret storage:  secretref://@secretsbroker/zitadel/service-lasso-auth-facade/client-secret
+metadata output:        runtime/service-lasso-oidc.metadata.json
+```
+
+The bootstrap output is metadata-only. It may include issuer, client id,
+redirect/post-logout URIs, allowed origins, and a `secretref://` pointer for the
+client secret. It must not print or write raw client secrets, access tokens, ID
+tokens, refresh tokens, session cookies, private keys, provider credentials, or
+database passwords.
+
+Example dry state-driven run:
+
+```powershell
+$env:ZITADEL_BOOTSTRAP_STATE = "runtime\zitadel-state.snapshot.json"
+$env:ZITADEL_BOOTSTRAP_METADATA_PATH = "runtime\service-lasso-oidc.metadata.json"
+npm run bootstrap:oidc
+```
+
+The state snapshot shape used by tests is intentionally small and mirrors the
+bootstrap contract rather than ZITADEL internals:
+
+```json
+{
+  "projects": {
+    "service-lasso": {
+      "name": "Service Lasso",
+      "applications": {
+        "service-lasso-auth-facade": {
+          "name": "Service Lasso auth facade",
+          "redirectUris": ["https://auth.servicelasso.localhost/oauth2/callback"],
+          "postLogoutRedirectUris": ["https://auth.servicelasso.localhost/logout/callback"],
+          "allowedOrigins": ["https://auth.servicelasso.localhost"],
+          "grantTypes": ["authorization_code", "refresh_token"],
+          "responseTypes": ["code"],
+          "authMethod": "client_secret_basic",
+          "clientSecretRef": "secretref://@secretsbroker/zitadel/service-lasso-auth-facade/client-secret"
+        }
+      }
+    }
+  }
+}
+```
+
+Later API-backed bootstrap code should use this same safe output boundary while
+mapping the plan actions to ZITADEL management API calls.
+
 ## Local Verification
 
 ```powershell
 npm test
 ```
 
-This packages the current platform, extracts the archive, verifies package
-metadata, and runs the ZITADEL binary version command from the extracted payload.
+This runs OIDC bootstrap contract tests, packages the current platform, extracts
+the archive, verifies package metadata, and runs the ZITADEL binary version
+command from the extracted payload. For the OIDC contract tests only, run:
+
+```powershell
+npm run test:oidc
+```

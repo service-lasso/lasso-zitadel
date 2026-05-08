@@ -1,0 +1,22 @@
+{
+  "projects": {
+    "service-lasso": {
+      "name": "Service Lasso",
+      "applications": {
+        "service-lasso-auth-facade": {
+          "name": "Service Lasso auth facade",
+          "redirectUris": ["https://auth.servicelasso.localhost/oauth2/callback"],
+          "postLogoutRedirectUris": ["https://auth.servicelasso.localhost/logout/callback"],
+          "allowedOrigins": [
+            "https://auth.servicelasso.localhost",
+            "https://serviceadmin.servicelasso.localhost"
+          ],
+          "grantTypes": ["authorization_code", "refresh_token"],
+          "responseTypes": ["code"],
+          "authMethod": "client_secret_basic",
+          "clientSecretRef": "secretref://@secretsbroker/zitadel/service-lasso-auth-facade/client-secret"
+        }
+      }
+    }
+  }
+}
