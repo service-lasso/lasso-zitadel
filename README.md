@@ -49,7 +49,7 @@ The service manifest declares:
 - optional managed service, `enabled: false` by default
 - native archive acquisition from GitHub releases
 - HTTP port mapping through `ZITADEL_PORT` and `ZITADEL_EXTERNALPORT`
-- local HTTP healthcheck at `/debug/ready`
+- canonical `healthchecks[]` HTTP readiness check at `/debug/ready`
 - default command line:
   `start-from-init --masterkeyFromEnv --tlsMode disabled`
 
