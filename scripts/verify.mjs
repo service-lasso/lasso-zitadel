@@ -72,6 +72,27 @@ if (manifest.env?.ZITADEL_PORT !== "${HTTP_PORT}" || manifest.env?.ZITADEL_MASTE
   throw new Error("ZITADEL manifest should map port but must not bake a master key.");
 }
 
+if (Object.hasOwn(manifest, "healthcheck")) {
+  throw new Error("ZITADEL manifest must use canonical healthchecks[] and not singular healthcheck.");
+}
+
+const healthchecks = manifest.healthchecks;
+if (!Array.isArray(healthchecks) || healthchecks.length !== 1) {
+  throw new Error(`Expected exactly one canonical healthcheck: ${JSON.stringify(healthchecks)}`);
+}
+
+const [httpReady] = healthchecks;
+if (
+  httpReady.id !== "http-ready" ||
+  httpReady.type !== "http" ||
+  httpReady.url !== "http://127.0.0.1:${HTTP_PORT}/debug/ready" ||
+  httpReady.expected_status !== 200 ||
+  httpReady.retries !== 80 ||
+  httpReady.interval !== 500
+) {
+  throw new Error(`Unexpected ZITADEL healthchecks[] contract: ${JSON.stringify(healthchecks)}`);
+}
+
 const artifact = await packageZitadel(platform, version);
 const verifyRoot = path.join(repoRoot, "output", "verify", version, platform);
 const extractRoot = path.join(verifyRoot, "extract");
