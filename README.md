@@ -5,8 +5,8 @@ ZITADEL as a release-backed optional managed service.
 
 The repo does not fork ZITADEL. It downloads official `zitadel/zitadel` release
 archives, wraps them in Service Lasso-compatible platform archives, and
-publishes those archives from protected `main` pushes using the project version
-pattern:
+publishes those archives through a manual, release-owner workflow dispatch from
+the qualified `develop` revision, using the project version pattern:
 
 ```text
 yyyy.m.d-<shortsha>
@@ -56,6 +56,29 @@ The service manifest declares:
 For production/day-two operation, ZITADEL recommends separating init, setup, and
 runtime phases. This package gives Service Lasso a working binary and manifest;
 the consuming application owns the database and operational policy.
+
+## Browser-local consumer topology
+
+For a disposable local browser test, start from
+[`examples/browser-local.service.json`](examples/browser-local.service.json).
+It keeps PostgreSQL app-owned, receives the master key through a broker
+reference, uses a generated `@localcert` certificate, serves trusted HTTPS with
+HTTP/2, and sets Login V2 to `false` **before first instance creation** so the
+supported embedded Login V1 route is available. Do not apply that Login V2
+setting to a database that has already been initialized with a different login
+configuration; use a fresh disposable database instead.
+
+After the Service Lasso API, PostgreSQL, `@localcert`, and ZITADEL are running,
+run the supplied smoke without passing an insecure TLS option:
+
+```powershell
+.\scripts\Test-ZitadelStartup.ps1 -RootCaPath <path-to-localcert-rootCA.pem>
+```
+
+The smoke verifies Service Lasso health, trusted HTTPS/HTTP2 readiness, OIDC
+discovery and issuer consistency, the console shell and module, and a real
+console authorization redirect to the Login V1 form. It intentionally does not
+create a project, client, role, user, or persistent browser login.
 
 ## Service Lasso OIDC bootstrap
 
@@ -125,9 +148,10 @@ mapping the plan actions to ZITADEL management API calls.
 npm test
 ```
 
-This runs OIDC bootstrap contract tests, packages the current platform, extracts
-the archive, verifies package metadata, and runs the ZITADEL binary version
-command from the extracted payload. For the OIDC contract tests only, run:
+This runs OIDC bootstrap and browser-local topology contract tests, packages the
+current platform, extracts the archive, verifies package metadata, and runs the
+ZITADEL binary version command from the extracted payload. For the OIDC contract
+tests only, run:
 
 ```powershell
 npm run test:oidc
