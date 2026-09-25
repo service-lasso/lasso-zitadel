@@ -1,0 +1,48 @@
+{
+  "id": "zitadel",
+  "name": "ZITADEL browser-local example",
+  "description": "Consumer-owned ZITADEL configuration for trusted local HTTPS, HTTP/2 console access, and Login V1 startup verification.",
+  "version": "v4.14.0",
+  "enabled": true,
+  "depend_on": ["postgres", "@localcert"],
+  "ports": {
+    "http": 18084
+  },
+  "commandline": {
+    "default": " start-from-init --masterkeyFromEnv --tlsMode enabled"
+  },
+  "env": {
+    "ZITADEL_PORT": "${HTTP_PORT}",
+    "ZITADEL_EXTERNALPORT": "${HTTP_PORT}",
+    "ZITADEL_EXTERNALDOMAIN": "localhost",
+    "ZITADEL_EXTERNALSECURE": "true",
+    "ZITADEL_TLS_ENABLED": "true",
+    "ZITADEL_TLS_CERTPATH": "${CERT_FILE}",
+    "ZITADEL_TLS_KEYPATH": "${CERT_KEY}",
+    "ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED": "false",
+    "ZITADEL_DATABASE_POSTGRES_DSN": "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/zitadel_local_v1?sslmode=disable",
+    "ZITADEL_MASTERKEY": "${identity.ZITADEL_MASTERKEY}"
+  },
+  "globalenv": {
+    "ZITADEL_URL": "https://localhost:${HTTP_PORT}/",
+    "ZITADEL_ISSUER": "https://localhost:${HTTP_PORT}/"
+  },
+  "healthchecks": [
+    {
+      "id": "zitadel-https-ready",
+      "type": "http",
+      "url": "https://localhost:${HTTP_PORT}/debug/ready",
+      "expected_status": 200,
+      "retries": 80,
+      "interval": 500
+    },
+    {
+      "id": "zitadel-oidc-discovery-ready",
+      "type": "http",
+      "url": "https://localhost:${HTTP_PORT}/.well-known/openid-configuration",
+      "expected_status": 200,
+      "retries": 80,
+      "interval": 500
+    }
+  ]
+}

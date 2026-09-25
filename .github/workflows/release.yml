@@ -1,9 +1,12 @@
 name: Release
 
 on:
+  pull_request:
+    branches:
+      - develop
   push:
     branches:
-      - main
+      - develop
   workflow_dispatch:
 
 permissions:
@@ -58,7 +61,7 @@ jobs:
 
   release:
     needs: build
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     steps:
