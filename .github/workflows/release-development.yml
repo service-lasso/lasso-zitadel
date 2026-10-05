@@ -84,7 +84,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Refuse forged receipts and publication inventory drift
-        run: python3 scripts/test-development-publication.py
+        run: |
+          python3 scripts/test-development-publication.py
+          python3 scripts/test-macos11-generated-inventory.py
       - name: One full locked upstream asset and private maintained-Go build
         run: |
           set -euo pipefail
