@@ -51,13 +51,18 @@ if stage!='pristine':
     equal(owned/'recipe/source-hashes.json','02086a4ece2f4785c73aa601700723b21e7e2edf5c916084881f2f3e286ca870')
     patches=json.loads((owned/'recipe/source-hashes.json').read_text())
 with tarfile.open(owned/'go.tar.gz') as archive:
+    go_paths=set()
     for member in archive.getmembers():
         if not member.isfile(): continue
         relative=member.name.removeprefix('go/')
+        go_paths.add(relative)
         expected=hashlib.sha256(archive.extractfile(member).read()).hexdigest()
         if relative in patches: expected=patches[relative]['after']
         if stage=='linked' and relative=='pkg/tool/linux_amd64/link':
             expected=json.loads((owned/'linker-inventory.json').read_text())['sha256']
         equal(owned/'go'/relative,expected)
+actual_go_paths={str(p.relative_to(owned/'go')) for p in (owned/'go').rglob('*') if p.is_file()}
+if actual_go_paths!=go_paths:
+    raise SystemExit('Unexpected extracted compiler/toolchain inventory')
 for relative,expected in assets['buildTools'].items(): equal(owned/relative,expected)
 print('Verified exact wrapper, authenticated archives, source, assets, locks and toolchain:',stage)
