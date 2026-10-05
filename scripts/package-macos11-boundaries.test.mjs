@@ -26,7 +26,8 @@ try {
   const hashes = Object.fromEntries(await Promise.all(keys.map(async key => [key, createHash("sha256").update(await readFile(path.join(directory, key))).digest("hex")])));
   const provenance = { wrapperSHA: sha, brokerRecipeSHA: pins.brokerRecipeSHA, effectiveSourceHashes: assets.effectiveSourceHashes, hashes,
     dependencyRecipe,
-    environment: { GOENV: "off", GOWORK: "off", GOTOOLCHAIN: "local", GOFLAGS: "", CGO_ENABLED: "0", GOAMD64: "v1" },
+    requestedEnvironment: { GOENV: "off" },
+    environment: { GOENV: "", GOWORK: "off", GOTOOLCHAIN: "local", GOFLAGS: "", CGO_ENABLED: "0", GOAMD64: "v1" },
     binaryEnvironment: { GOOS: "darwin", GOARCH: "amd64", GOAMD64: "v1", CGO_ENABLED: "0" },
     buildFlags: "-mod=readonly -x -work -trimpath", linkFlags: "-linkmode=internal" };
   async function reject(value, pattern) {

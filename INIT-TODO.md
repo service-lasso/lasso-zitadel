@@ -1,5 +1,13 @@
 # Issue 10 work state
 
+## Issue #27 disabled Go environment metadata
+- [x] Fresh issue27 and clean typed branch from verified current develop8348dd8; active GOENV-META-1..4 intent/spec/plan before code.
+- [x] Parent reconciled fresh investigator/primary Go source and actual local Go before product edits; precise failed producer field remains inference without retained provenance.
+- [x] Minimal raw/effective-GOENV validation, real official1.26.8 preflight wiring and narrow nonsecret boundary diagnostics; all other gates preserved.
+- [x] Actual local Go1.26.0 legitimate/rejection controls and existing focused regressions pass; disposable fixture retained after automatic cleanup rejection.
+- [ ] Commit/push every commit and develop PR for parent fresh review; official1.26.8 pristine CI and full qualification pending.
+- [ ] Parent exact full producer/native18/Mac11/paired SSO/protected owner publication; issue27 remains open until actual qualification.
+
 ## Issue #23 final binary security
 - [x] Fresh isolated typed branch from verified develop e584c4c; issue/spec/intent mapped before product edits.
 - [x] Preserve full Windows source exit0 and actual binary exit3 from producer37291332340; no package/native/publication acceptance.
