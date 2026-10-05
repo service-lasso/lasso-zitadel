@@ -1,6 +1,6 @@
 # ZITADEL wrapper intent
 
-Package the unchanged upstream ZITADEL v4.14.0 identity service for Service Lasso. Official Windows, Linux, and modern Darwin assets remain the default. Issue #10 adds an explicitly selected Darwin amd64 macOS 11 compatibility profile built from upstream commit 10b1af91d68700707d41e820545e478cf267511b using a private maintained Go 1.26.8 toolchain. Development only; no GA declaration.
+Package ZITADEL v4.14.0 for Service Lasso with authenticated dependency repairs and unchanged public service contracts. Issue #18 binds default Windows, Linux and modern Darwin amd64 packages to the same repaired source and complete generated assets as prerequisite #17, using official maintained Go 1.26.8. Original upstream binaries remain baseline qualification inputs only. Issue #10 retains the explicitly selected Darwin amd64 macOS 11 compatibility profile from upstream commit 10b1af91d68700707d41e820545e478cf267511b using its private maintained Go 1.26.8 compiler recipe. Development only; no GA declaration.
 
 Authoritative issue: https://github.com/service-lasso/lasso-zitadel/issues/10
 Active requirements: ../specs/SPEC-010-macos11-compatibility.md
@@ -15,3 +15,4 @@ Issue #15 / active [SPEC-015](../specs/SPEC-015-preflight-checkout-purity.md): d
 Issue #17 / active [SPEC-017](../specs/SPEC-017-source-dependency-remediation.md) AC-017-1..5: retain immutable v4.14.0 identity implementation and apply an authenticated dependency-only go.mod/go.sum overlay before full generation to remediate nine reachable vulnerabilities. All original and compatibility security/source/native/publication gates remain mandatory.
 
 Issue #21 / active [SPEC-021](../specs/SPEC-021-otel-logging-compatibility.md) AC-021-1..4: correct logging bridge API compatibility exposed by full producer37287250979 without downgrading fixed security dependencies or weakening custody/build/security gates.
+Issue #18 / active [SPEC-018](../specs/SPEC-018-default-package-security.md) AC-018-1..6: supported defaults must not ship the known affected official binary graph. Authenticate shared repaired source/assets, verify exact binaries and choose repaired packages at publication. Product implementation awaits #17 landing and fresh investigation.

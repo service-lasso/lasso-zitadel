@@ -1,5 +1,12 @@
 # Issue 10 work state
 
+## Issue #18 default package security
+- [x] Fresh owner, isolated typed branch from develop 158c9ea and active SPEC-018 before product edits.
+- [x] Direct original Linux module evidence identifies affected default package graph; preserve baseline checks.
+- [ ] Await #17 authenticated repair landing and fresh read-only boundary investigation.
+- [ ] Implement AC-018-1..6, focused checks, pushed PR and distinct independent review.
+- [ ] Parent-owned exact hosted/native/publication qualification; source implementation does not establish repaired binary acceptance.
+
 - [x] Read governing Core rules/issue; own clean develop-only clone at93d4c8470331f86a67299f9fbf7e8143551027a7.
 - [x] Active SPEC-010/project intent and bounded Git workflow before product changes.
 - [x] Approved immutable Broker recipe4a3464b9b37f8eece1e2527a6f701973a061e68b pinned with guarded patch/native-source digests.
