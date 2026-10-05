@@ -31,6 +31,8 @@ jobs:
         run: |
           python3 scripts/test-default-binary-inspection.py
           python3 scripts/test-default-binary-inspection.py --real
+      - name: Real official Go disabled configuration metadata regression
+        run: node scripts/test-macos11-build-environment.mjs
       - name: Verify authenticated dependency overlay and source custody
         run: python3 -B scripts/test-macos11-dependency-recipe.py
       - name: Verify exact producer preflight preserves a fresh checkout

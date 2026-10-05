@@ -237,11 +237,7 @@ export async function packageMacos11(buildDirectory, releaseVersion) {
   if (!/^[a-f0-9]{40}$/.test(pins.brokerRecipeSHA ?? "") || provenance.brokerRecipeSHA !== pins.brokerRecipeSHA) throw new Error("Reviewed recipe pin disagreement");
   if (assets.wrapperSHA !== provenance.wrapperSHA || assets.upstreamSHA !== pins.upstreamSHA || assets.upstreamArchiveSHA256 !== pins.upstreamArchiveSHA256) throw new Error("Asset source/wrapper identity disagreement");
   if (createHash("sha256").update(assetBytes).digest("hex") !== provenance.hashes["asset-provenance.json"]) throw new Error("Asset provenance digest disagreement");
-  const expectedEnvironment = { GOENV: "off", GOWORK: "off", GOTOOLCHAIN: "local", GOFLAGS: "", CGO_ENABLED: "0", GOAMD64: "v1" };
-  if (Object.entries(expectedEnvironment).some(([key, value]) => provenance.environment?.[key] !== value) ||
-      provenance.binaryEnvironment?.GOOS !== "darwin" || provenance.binaryEnvironment?.GOARCH !== "amd64" ||
-      provenance.binaryEnvironment?.GOAMD64 !== "v1" || provenance.binaryEnvironment?.CGO_ENABLED !== "0" ||
-      provenance.buildFlags !== "-mod=readonly -x -work -trimpath" || provenance.linkFlags !== "-linkmode=internal") throw new Error("Compatibility build environment disagreement");
+  validateCompatibilityEnvironment(provenance);
   for (const [relative, expected] of Object.entries(provenance.hashes)) {
     if (path.isAbsolute(relative) || relative.split(/[\\/]/).includes("..")) throw new Error("Unsafe provenance path");
     if (createHash("sha256").update(await readFile(path.join(buildDirectory, relative))).digest("hex") !== expected) throw new Error(`Provenance input drift: ${relative}`);
@@ -286,6 +282,16 @@ export async function packageMacos11(buildDirectory, releaseVersion) {
   const outputPath = await compressPackage(packageRoot, path.join(repoRoot, "dist", assetName), "tar.gz");
   run(process.platform === "win32" ? "python" : "python3", [path.join(repoRoot, "scripts/verify-binary-symbols.py"), "--archive", outputPath], { env: symbolEnvironment });
   return outputPath;
+}
+
+export function validateCompatibilityEnvironment(provenance) {
+  // Go reports an empty effective GOENV when the process explicitly requests off.
+  const expectedEnvironment = { GOENV: "", GOWORK: "off", GOTOOLCHAIN: "local", GOFLAGS: "", CGO_ENABLED: "0", GOAMD64: "v1" };
+  if (provenance.requestedEnvironment?.GOENV !== "off" ||
+      Object.entries(expectedEnvironment).some(([key, value]) => provenance.environment?.[key] !== value) ||
+      provenance.binaryEnvironment?.GOOS !== "darwin" || provenance.binaryEnvironment?.GOARCH !== "amd64" ||
+      provenance.binaryEnvironment?.GOAMD64 !== "v1" || provenance.binaryEnvironment?.CGO_ENABLED !== "0" ||
+      provenance.buildFlags !== "-mod=readonly -x -work -trimpath" || provenance.linkFlags !== "-linkmode=internal") throw new Error("Compatibility build environment disagreement");
 }
 
 // Call only after the owned compiler inventory has been authenticated.

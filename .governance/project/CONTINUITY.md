@@ -1,5 +1,15 @@
 # Issue 10 continuity
 
+## Issue #27 disabled Go environment metadata (2026-10-06)
+
+Fresh author /root/fix_zitadel27_goenv_metadata; D:/projects/service-lasso/zitadel27-goenv-metadata, fix/27-goenv-metadata from verified develop8348dd806b8784849a65b814fbf4ceaeeacaa3e2. GOENV-META-1..4 active before product edits; parent reconciled fresh investigator and primary Go1.26.8 cfg.EnvFile/envcmd.MkEnv with actual local1.26.0 control. Producer37302073453 passed all four full source/executable scan pairs before packaging failed; exact field remains inferred because failed build provenance was not retained.
+
+Recorder now explicitly refuses raw GOENV other than off, preserves requestedEnvironment.GOENV=off separately and retains actual effective environment.GOENV empty. Shared packaging validator requires both values and preserves every other field/flag. Supported-default raw provenance, compiler/dependency/source/scanner/symbol/native/publisher gates unchanged. Actual Go regression exercises production recorder/helper and shared packaging boundary; official1.26.8 CI and producer preflight run it before full generation. Failure upload adds only existing nonsecret build provenance/security manifest.
+
+Actual local Go1.26.0 legitimate disabled control, four default/explicit config controls and14 metadata/other-setting refusals pass. Existing19 packaging,45 supported,7 inspection,45 publication,6 inventory,3 scanner, OIDC/browser and syntax/diff checks pass. Parent owns one fresh review/landing, exact official1.26.8/pristine CI/full producer/native18/Mac11/paired SSO/protected owner publication. No full local Linux build, old-candidate repackaging, dispatch, merge or GA claim.
+
+Owned disposable output-boundary-fixture-02ZPpS remains untracked after test cleanup and scoped removal was rejected by automatic approval review. Parent instructed preservation and no retry/bypass; fixture excluded from commits, no broad ignore. This local worktree cannot satisfy pristine producer preflight; fresh CI checkout is authoritative. Owned branch/worktree retained for review and governed landing; all other checkouts preserved.
+
 ## Issue #23 final binary security (2026-10-05)
 
 Fresh author /root/fix_zitadel23_binary_security; own D:/projects/service-lasso/zitadel23-binary-security, fix/23-binary-security from verified develop e584c4c16ebeaa66f3c720e205e471466e3a8c7e. SPEC-023 AC-023-1..6 binds issue23. Product edits held until parent reconciles independent investigator with author's source/caller pass and approves exact boundary. Existing dependency recipe permits go.mod/go.sum only; source import migration requires explicit narrow path/hash custody, never general exemption.

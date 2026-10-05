@@ -84,6 +84,13 @@ jobs:
       NX_PARALLEL: 2
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22.23.3
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
+        with:
+          go-version: 1.26.8
+          cache: false
       - name: Refuse forged receipts and publication inventory drift
         run: |
           python3 scripts/test-development-publication.py
@@ -92,6 +99,7 @@ jobs:
           python3 scripts/test-macos11-security-runner.py
           python3 scripts/test-supported-defaults.py
           python3 scripts/test-default-binary-inspection.py
+          node scripts/test-macos11-build-environment.mjs
       - name: One full locked upstream asset and private maintained-Go build
         run: |
           set -euo pipefail
@@ -141,6 +149,8 @@ jobs:
             ${{ runner.temp }}/zitadel10/*vulnerabilities.txt
             ${{ runner.temp }}/zitadel10/defaults/*/*.log
             ${{ runner.temp }}/zitadel10/defaults/*/modules.txt
+            ${{ runner.temp }}/zitadel10/artifacts/build-provenance.json
+            ${{ runner.temp }}/zitadel10/security-scan.json
           if-no-files-found: warn
           retention-days: 90
 
