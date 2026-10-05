@@ -1,0 +1,59 @@
+"""Validate supported package proofs, both owned staging and final archives."""
+import hashlib,json,pathlib,subprocess,sys,tarfile,zipfile
+sys.dont_write_bytecode=True
+from macos11_dependency_recipe import identity
+root=pathlib.Path(__file__).resolve().parent.parent
+GO_HASH='d0f743b33e8d8945e6b1f432edd15785c70507121d6e2a723b21285eddf8b57b'
+def digest(data): return hashlib.sha256(data).hexdigest()
+def validate(read,platform,head):
+    doc=json.loads(read('default-build-provenance.json'));assets=json.loads(read('asset-provenance.json'))
+    if doc.get('schema')!=1 or doc.get('profile')!='authenticated-maintained-go1.26.8-defaults' or doc.get('wrapperSHA')!=head:
+        raise SystemExit('Default provenance profile/wrapper disagreement')
+    recipe=identity(root)
+    if doc.get('dependencyRecipe')!=recipe or assets.get('dependencyRecipe')!=recipe or assets.get('wrapperSHA')!=head or doc.get('upstreamSHA')!=assets.get('upstreamSHA'):
+        raise SystemExit('Default authenticated source disagreement')
+    if doc.get('assetSHA256')!=digest(read('asset-provenance.json')) or doc.get('generatorSHA256')!=digest(read('api-generator-inventory.json')) or doc.get('toolchainArchiveSHA256')!=GO_HASH:
+        raise SystemExit('Default asset/toolchain disagreement')
+    expected={'GOENV':'off','GOWORK':'off','GOTOOLCHAIN':'local','CGO_ENABLED':'0','GOARCH':'amd64','GOAMD64':'v1'}
+    if doc.get('environment')!=expected or set(doc.get('targets',{}))!={'win32','linux','darwin'} or doc.get('scanner')!='golang.org/x/vuln/cmd/govulncheck@v1.7.0':
+        raise SystemExit('Default build/scanner contract disagreement')
+    target=doc['targets'][platform];goos={'win32':'windows','linux':'linux','darwin':'darwin'}[platform]
+    if target.get('goos')!=goos or target.get('arch')!='amd64' or target.get('binarySHA256')!=digest(read('zitadel.exe' if platform=='win32' else 'zitadel')) or target.get('modulesSHA256')!=digest(read('modules.txt')):
+        raise SystemExit('Default target/binary/module disagreement')
+    modules=read('modules.txt').decode()
+    if 'go1.26.8' not in modules or '\tbuild\tGOOS='+goos not in modules or '\tbuild\tCGO_ENABLED=0' not in modules:
+        raise SystemExit('Default actual binary build information disagreement')
+    metadata=json.loads(read('SERVICE-LASSO-PACKAGE.json'))
+    if metadata.get('profile')!=doc['profile'] or metadata.get('binarySource')!='authenticated-source-build' or metadata.get('wrapperCommit')!=head or metadata.get('binarySHA256')!=target['binarySHA256'] or metadata.get('platform')!=platform or metadata.get('arch')!='amd64' or metadata.get('upstream',{}).get('sourceCommit')!=doc['upstreamSHA']:
+        raise SystemExit('Default package metadata disagreement')
+    for kind in ('source','binary'):
+        scan=target.get(kind,{})
+        if scan.get('exitCode')!=0 or type(scan.get('exitCode')) is not int or scan.get('format')!='text' or scan.get('reportSHA256')!=digest(read(kind+'-vulnerabilities.txt')):
+            raise SystemExit('Default exact security evidence disagreement')
+    if target['source'].get('target')!=goos+'/amd64': raise SystemExit('Default source scan target disagreement')
+    return doc
+def archive(path,platform,head):
+    if path.suffix=='.zip':
+        with zipfile.ZipFile(path) as z:
+            names=z.namelist()
+            if len(set(names))!=len(names) or any('/' in n or '\\' in n or n in ('.','..') for n in names): raise SystemExit('Unsafe default archive')
+            validate(z.read,platform,head)
+    else:
+        with tarfile.open(path) as t:
+            members={m.name.removeprefix('./'):m for m in t.getmembers() if m.name not in ('.','./')}
+            if len(members)!=len([m for m in t.getmembers() if m.name not in ('.','./')]) or any(not m.isfile() or '/' in n or '\\' in n or n in ('.','..') for n,m in members.items()): raise SystemExit('Unsafe default archive')
+            validate(lambda n:t.extractfile(members[n]).read(),platform,head)
+if __name__=='__main__':
+    mode,directory,platform=sys.argv[1:4];head=subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD'],text=True).strip()
+    if mode=='archive': archive(pathlib.Path(directory),platform,head)
+    elif mode=='owned':
+        owned=pathlib.Path(directory)
+        subprocess.run([sys.executable,str(root/'scripts/verify-macos11-inputs.py'),str(root),str(owned),'pristine'],check=True)
+        target=owned/'defaults'/platform
+        files={'default-build-provenance.json':owned/'defaults/provenance.json','asset-provenance.json':owned/'asset-provenance.json','api-generator-inventory.json':owned/'api-generator-inventory.json',
+            'source-vulnerabilities.txt':owned/('security-default-source-'+platform+'.log'),'binary-vulnerabilities.txt':owned/('security-default-binary-'+platform+'.log')}
+        metadata={'profile':'authenticated-maintained-go1.26.8-defaults','binarySource':'authenticated-source-build','wrapperCommit':head,
+                  'binarySHA256':json.loads((owned/'defaults/provenance.json').read_text())['targets'][platform]['binarySHA256'],
+                  'platform':platform,'arch':'amd64','upstream':{'sourceCommit':json.loads((owned/'asset-provenance.json').read_text())['upstreamSHA']}}
+        validate(lambda n:json.dumps(metadata).encode() if n=='SERVICE-LASSO-PACKAGE.json' else (files[n] if n in files else target/n).read_bytes(),platform,head)
+    else: raise SystemExit('Unknown default verification mode')

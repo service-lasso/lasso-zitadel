@@ -3,8 +3,10 @@
 ## Issue #18 default package security
 - [x] Fresh owner, isolated typed branch from develop 158c9ea and active SPEC-018 before product edits.
 - [x] Direct original Linux module evidence identifies affected default package graph; preserve baseline checks.
-- [ ] Await #17 authenticated repair landing and fresh read-only boundary investigation.
-- [ ] Implement AC-018-1..6, focused checks, pushed PR and distinct independent review.
+- [x] #17 authenticated repair landed c494e83; fresh investigator confirmed shared packaging boundary.
+- [x] Implement AC-018-1..6 shared fail-closed default packaging, three target builds/scans and publisher proof inspection; preserve original baseline and 13 assets.
+- [x] 36 supported-proof and 45 publication rejection checks; existing 6 inventory, 3 security-runner, 18 compatibility packaging and OIDC/browser contract checks passed.
+- [ ] Distinct independent review and exact-head CI.
 - [ ] Parent-owned exact hosted/native/publication qualification; source implementation does not establish repaired binary acceptance.
 
 - [x] Read governing Core rules/issue; own clean develop-only clone at93d4c8470331f86a67299f9fbf7e8143551027a7.

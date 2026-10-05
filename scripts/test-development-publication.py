@@ -1,5 +1,7 @@
 """AC-010-7 boundary tests; fixture receipts are never native acceptance."""
 import copy,hashlib,json,os,pathlib,subprocess,sys,tempfile
+sys.dont_write_bytecode=True
+from supported_default_fixtures import make_archive
 root=pathlib.Path(__file__).resolve().parent.parent
 sha='a'*40;tag='2026.10.5-'+sha[:7]
 pins=json.loads((root/'toolchains/macos11/input-pins.json').read_text())
@@ -48,6 +50,8 @@ with tempfile.TemporaryDirectory(prefix='zitadel10-publication-boundaries-') as 
     (assets/receipt_names[0]).write_bytes(original)
     for name in ('lasso-zitadel-v4.14.0-win32.zip','lasso-zitadel-v4.14.0-linux.tar.gz','lasso-zitadel-v4.14.0-darwin.tar.gz','service.json','macos11-native-receipt.json'):
         (assets/name).write_text('Boundary asset\n')
+    for platform,suffix in [('win32','zip'),('linux','tar.gz'),('darwin','tar.gz')]:
+        make_archive(assets/f'lasso-zitadel-v4.14.0-{platform}.{suffix}',platform,sha,root)
     run('verify-development-assets.py',[assets,'write'],True)
     run('verify-development-assets.py',[assets,'verify'],True)
     (assets/'unexpected-file').write_text('extra');run('verify-development-assets.py',[assets,'verify'],False);(assets/'unexpected-file').unlink()

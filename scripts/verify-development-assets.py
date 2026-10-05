@@ -1,5 +1,9 @@
 """Fixed create-only publication inventory, checksums and exact API readback."""
 import hashlib,json,os,pathlib,re,sys
+sys.dont_write_bytecode=True
+import importlib.util
+spec=importlib.util.spec_from_file_location('supported',pathlib.Path(__file__).parent/'verify-supported-defaults.py')
+supported=importlib.util.module_from_spec(spec);spec.loader.exec_module(supported)
 root=pathlib.Path(sys.argv[1]);mode=sys.argv[2]
 names={'lasso-zitadel-v4.14.0-win32.zip','lasso-zitadel-v4.14.0-linux.tar.gz',
        'lasso-zitadel-v4.14.0-darwin.tar.gz','service.json',
@@ -12,6 +16,8 @@ if mode!='write': names.add('SHA256SUMS.txt')
 paths={p.name:p for p in root.iterdir()}
 if set(paths)!=names or any(not p.is_file() or p.is_symlink() or p.stat().st_size<=0 for p in paths.values()):
     raise SystemExit('Unexpected/missing/linked/empty publication asset inventory')
+for platform,name in [('win32','lasso-zitadel-v4.14.0-win32.zip'),('linux','lasso-zitadel-v4.14.0-linux.tar.gz'),('darwin','lasso-zitadel-v4.14.0-darwin.tar.gz')]:
+    supported.archive(paths[name],platform,os.environ['GITHUB_SHA'])
 hashes={n:hashlib.sha256(p.read_bytes()).hexdigest() for n,p in paths.items()}
 if mode=='write':
     (root/'SHA256SUMS.txt').write_text(''.join(hashes[n]+'  '+n+'\n' for n in sorted(hashes)))

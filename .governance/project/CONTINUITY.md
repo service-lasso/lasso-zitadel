@@ -1,5 +1,13 @@
 # Issue 10 continuity
 
+## Issue #18 supported default security (2026-10-05)
+
+Fresh owner /root/fix_zitadel_supported_package_security; isolated D:/projects/service-lasso/zitadel18-default-package-security, typed fix/18-default-package-security, PR #19. Preparation rebased only from current develop c494e8396731d89fd601c39abbf391b41f8611e4 after #17 landed. No source recipe/overlay files changed. Fresh investigator identified shared packageZitadel default as vulnerable boundary. SPEC-018 records explicit transition: original packages are baseline-only; normal packaging requires authenticated repaired source output.
+
+Producer uses pristine official Go1.26.8 before custom linker patch to build three defaults and run full per-GOOS source/exact binary text scans with mandatory nonzero exits. Each final archive embeds build, source/assets/generator, module and scan proofs; publisher rejects affected baseline archives while retaining fixed 13-asset inventory. Native Windows/Linux/modern Intel checks verify actual repaired packages and version/help/manifests. Custom compiler, trust, receipt and protected publisher boundaries remain intact.
+
+Focused evidence: 36 supported proof negatives, 45 publication boundaries, six generated inventory groups, three scanner process groups, 18 compatibility packaging negatives and OIDC/browser contracts passed locally. Synthetic proofs test rejection logic only. Full hosted builds/scans and native version/help on this exact candidate remain unverified and parent-owned; no repaired binary, publication or GA acceptance claim. Parent holds publisher until fresh independent review and required CI.
+
 Development owner /root/implement_zitadel10_mac11; isolated own checkout D:/projects/service-lasso/zitadel10-macos11-compat. Base develop 93d4c8470331f86a67299f9fbf7e8143551027a7; active branch fix/10-macos11-compat, draft PR https://github.com/service-lasso/lasso-zitadel/pull/11. Every commit pushed. Diagnosis clone remains untouched/read-only; open PR branch and generated private evidence are intentionally retained until governed landing.
 
 SPEC-010 AC-010-1..7 governs the approved explicit maintained-source compatibility. Parent froze fresh-reviewed immutable Broker recipe 4a3464b9b37f8eece1e2527a6f701973a061e68b; exact patch/native-fixture hashes are pinned. This establishes source approval, not published Broker or ZITADEL qualification. Current code authenticates source/compiler/tool inventories before and after compile, generates full locked upstream assets, produces a separate custom archive/tag-bound manifest and guarded provenance. Default service.json and official platform build/test paths are preserved.
