@@ -248,7 +248,8 @@ export async function packageMacos11(buildDirectory, releaseVersion) {
   }
   // Standalone packaging authenticates archives, source, assets and the linked toolchain.
   run(process.platform === "win32" ? "python" : "python3", [path.join(repoRoot, "scripts/verify-macos11-inputs.py"), repoRoot, buildDirectory, "linked"]);
-  run(process.platform === "win32" ? "python" : "python3", [path.join(repoRoot, "scripts/verify-binary-symbols.py"), path.join(buildDirectory, "artifacts/zitadel")]);
+  const symbolEnvironment = ownedGoEnvironment(buildDirectory);
+  run(process.platform === "win32" ? "python" : "python3", [path.join(repoRoot, "scripts/verify-binary-symbols.py"), path.join(buildDirectory, "artifacts/zitadel")], { env: symbolEnvironment });
   if (!/^\d{4}\.\d{1,2}\.\d{1,2}-[a-f0-9]{7}$/.test(releaseVersion ?? "") || !releaseVersion.endsWith(`-${provenance.wrapperSHA.slice(0, 7)}`)) {
     throw new Error("Compatibility release tag must bind exact wrapper SHA");
   }
@@ -283,8 +284,13 @@ export async function packageMacos11(buildDirectory, releaseVersion) {
   await writeFile(path.join(packageRoot, "SERVICE-LASSO-PACKAGE.json"), `${JSON.stringify({ serviceId: "zitadel", upstream: { repo: "zitadel/zitadel", version: "v4.14.0", sourceCommit: provenance.upstreamSHA }, packagedBy: "service-lasso/lasso-zitadel", platform: "darwin", arch: "amd64", command: "./zitadel", profile: provenance.profile, binarySource: "custom-source-build", wrapperCommit: provenance.wrapperSHA, binarySHA256: hash }, null, 2)}\n`);
   await writeFile(path.join(packageRoot, "COMPATIBILITY.txt"), "Custom maintained Go 1.26.8 build of ZITADEL v4.14.0 with an authenticated dependency-only security patch for Intel macOS 11. This is a separately selected compatibility profile, not an official upstream Darwin binary or official Go macOS 11 support. See build-provenance.json and asset-provenance.json for the exact dependency recipe.\n");
   const outputPath = await compressPackage(packageRoot, path.join(repoRoot, "dist", assetName), "tar.gz");
-  run(process.platform === "win32" ? "python" : "python3", [path.join(repoRoot, "scripts/verify-binary-symbols.py"), "--archive", outputPath]);
+  run(process.platform === "win32" ? "python" : "python3", [path.join(repoRoot, "scripts/verify-binary-symbols.py"), "--archive", outputPath], { env: symbolEnvironment });
   return outputPath;
+}
+
+// Call only after the owned compiler inventory has been authenticated.
+export function ownedGoEnvironment(buildDirectory) {
+  return { ...process.env, GOROOT: path.join(buildDirectory, "go"), PATH: `${path.join(buildDirectory, "go/bin")}${path.delimiter}${process.env.PATH ?? ""}` };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

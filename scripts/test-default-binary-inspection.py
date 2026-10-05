@@ -1,5 +1,5 @@
 """Defensive actual-module/scanner controls; no old affected executable test."""
-import importlib.util,io,os,pathlib,subprocess,sys,tarfile,tempfile,unittest
+import importlib.util,io,json,os,pathlib,shutil,subprocess,sys,tarfile,tempfile,unittest
 from unittest.mock import patch
 sys.dont_write_bytecode=True
 from binary_symbols import require_symbols, inspect_archive_symbols
@@ -73,15 +73,34 @@ class Inspection(unittest.TestCase):
             runner.assert_not_called()
 
 def real_control():
+    go=pathlib.Path(shutil.which('go')).resolve()
+    go_root=pathlib.Path(subprocess.check_output([str(go),'env','GOROOT'],text=True).strip())
+    # Exercise the packaging environment constructor with a missing/different
+    # host Go selection. Only the already-authenticated owned Go may inspect.
+    script="import {ownedGoEnvironment} from './scripts/package.mjs'; console.log(JSON.stringify(ownedGoEnvironment(process.argv[1])));"
     with tempfile.TemporaryDirectory(prefix='zitadel18-benign-go-') as temporary:
         directory=pathlib.Path(temporary)
+        owned=directory/'owned';owned.mkdir()
+        # This disposable compiler alias tests process selection only. It is
+        # never passed to the production authentication guard as custody proof.
+        (owned/'go').symlink_to(go_root,target_is_directory=True)
+        environments=[]
+        for host in ('missing-host-go','different-host-go'):
+            polluted=dict(os.environ,GOROOT=host,PATH=host)
+            selected=json.loads(subprocess.check_output([shutil.which('node'),'--input-type=module','-e',script,str(owned)],cwd=root,env=polluted,text=True))
+            if not subprocess.check_output(['go','version'],env=selected,text=True).startswith('go version go1.26.8 '):
+                raise AssertionError('Packaging did not select maintained owned Go')
+            environments.append(selected)
         (directory/'go.mod').write_text('module example.invalid/benign-inspection-control\n\ngo 1.26.8\n')
         (directory/'main.go').write_text('package main\nfunc main() {}\n')
         for platform,goos in [('win32','windows'),('linux','linux'),('darwin','darwin')]:
             binary=directory/('zitadel.exe' if platform=='win32' else 'zitadel')
             subprocess.run(['go','build','-o',str(binary),'.'],cwd=directory,env=dict(os.environ,GOOS=goos,GOARCH='amd64',GOAMD64='v1',CGO_ENABLED='0'),check=True)
             files={binary.name:binary.read_bytes(),'modules.txt':subprocess.check_output(['go','version','-m',str(binary)])}
-            module.inspect_binary(files.__getitem__,platform)
+            with patch.dict(os.environ,environments[0],clear=True):
+                module.inspect_binary(files.__getitem__,platform)
+            from binary_symbols import inspect_symbols
+            inspect_symbols('go',binary,environments[1])
             stripped=directory/('stripped.exe' if platform=='win32' else 'stripped')
             subprocess.run(['go','build','-ldflags=-s -w','-o',str(stripped),'.'],cwd=directory,env=dict(os.environ,GOOS=goos,GOARCH='amd64',GOAMD64='v1',CGO_ENABLED='0'),check=True)
             files={binary.name:stripped.read_bytes(),'modules.txt':subprocess.check_output(['go','version','-m',str(stripped)])}
