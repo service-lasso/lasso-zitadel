@@ -3,11 +3,16 @@ import hashlib,json,os,pathlib,subprocess,sys,tarfile
 
 root,owned=map(pathlib.Path,sys.argv[1:3])
 stage=sys.argv[3]
+if not owned.is_absolute() or owned.resolve()!=owned or owned==pathlib.Path('/'):
+    raise SystemExit('Owned build directory must be absolute, private and unlinked')
+for candidate in [owned/'go',owned/'recipe',owned/'artifacts']:
+    if candidate.is_symlink(): raise SystemExit('Linked build/toolchain directory refused')
 pins=json.loads((root/'toolchains/macos11/input-pins.json').read_text())
 assets=json.loads((owned/'asset-provenance.json').read_text())
 head=subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD'],text=True).strip()
 def digest(p):
-    if p.is_symlink(): raise SystemExit('Linked input refused: '+str(p))
+    if p.is_symlink() or any(parent.is_symlink() for parent in p.parents):
+        raise SystemExit('Linked input refused: '+str(p))
     return hashlib.sha256(p.read_bytes()).hexdigest()
 def equal(p,expected):
     if digest(p)!=expected: raise SystemExit('Input digest disagreement: '+str(p))
