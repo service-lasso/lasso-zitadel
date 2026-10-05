@@ -1,0 +1,11 @@
+# Issue 10 continuity
+
+Development owner /root/implement_zitadel10_mac11; isolated own checkout D:/projects/service-lasso/zitadel10-macos11-compat. Base develop 93d4c8470331f86a67299f9fbf7e8143551027a7; active branch fix/10-macos11-compat, draft PR https://github.com/service-lasso/lasso-zitadel/pull/11. Every commit pushed. Diagnosis checkout remains untouched/read-only.
+
+SPEC-010 AC-010-1..7 governs bounded maintained-source compatibility. Current code prepares locked source/full assets, guarded private Go variant, separate custom archive/provenance/tag-bound manifest. brokerRecipeSHA deliberately null until parent freezes exact independently reviewed Broker recipe; binary builder refuses it. Default service.json and official build paths unchanged.
+
+Direct local evidence: OIDC bootstrap and browser startup contract tests passed; compatibility input refusals passed; shell/Python/JavaScript syntax and diff checks passed. Ubuntu-24.04 private diagnostic workspace /root/zitadel10-source-assets fully passed upstream Nx @zitadel/api:generate and @zitadel/api:build-console under official private Go1.26.8, Node22.23.3 and locked pnpm10.30.3. Preserved original console failure: unzip absent. Resolved through private checksum-verified Ubuntu unzip deb extraction, without OS package installation. All logs and inputs retained outside checkout.
+
+Fresh exact-wrapper assets attempt /root/zitadel10-candidate-9997f03 stopped after official tool/download/checksum setup; top-level retained log D:/projects/service-lasso/_evidence/broker188-macos11-independent/zitadel10-candidate-9997f03.log. WSL subsequently returned UtilInitGroups I/O/CreateProcess failed and read-only access became unavailable. No distro restart/shared process mutation performed. Earlier diagnostic asset feasibility is partial evidence only, not final candidate/build/runtime qualification.
+
+Next: restore owned read-only WSL access without shared mutation, diagnose fresh build failure from retained logs, bind final reviewed BrokerSHA, finish exact candidate/provenance and source review. Native Mac11/browser/TLS/OIDC/restart, modern regression, protected publication and released tutorial consumer remain pending. No GA claim. Open PR branch and private fixtures are intentionally retained until governed landing/evidence closure.
