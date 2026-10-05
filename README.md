@@ -148,16 +148,18 @@ mapping the plan actions to ZITADEL management API calls.
 ## Local Verification
 
 ```powershell
-$env:ZITADEL_SUPPORTED_BUILD = 'C:\absolute\completed-authenticated-build'
-npm test
+$env:TARGET_PLATFORM = 'win32'
+$env:ZITADEL_VERIFY_ARCHIVE = 'C:\absolute\staged\lasso-zitadel-v4.14.0-win32.zip'
+npm run release:verify
 ```
 
-This runs OIDC bootstrap and browser-local topology contract tests, packages the
-current platform, extracts the archive, verifies package metadata, and runs the
-ZITADEL binary version/help commands from the extracted payload. Normal
-packaging fails without an authenticated completed source build. The full
-producer runs on a hosted Linux runner; Windows paths above illustrate native
-package verification only. CI retains original upstream baseline tests with
+Install official Go 1.26.8 on the native host before verifying a staged repaired
+archive. This verifies actual binary build information and runs the pinned
+vulnerability scanner, extracts the archive, verifies package metadata and
+executes the native ZITADEL version/help commands. The full authenticated source
+producer and packaging run on a hosted Linux runner; its Linux compiler cannot
+run on Windows. Normal packaging fails without that completed source build.
+CI retains original upstream baseline tests with
 the explicit `official-baseline` profile; baseline archives cannot enter the
 protected final publication inventory. For the OIDC contract
 tests only, run:
