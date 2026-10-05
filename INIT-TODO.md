@@ -54,6 +54,6 @@ This is scoped remediation tracking, not a claim of repository bootstrap complet
 
 ## Issue #21 logging bridge compatibility
 - [x] Fresh typed branch from current developc494e839; tracked issue/spec/intent before dependency changes.
-- [ ] Resolve minimal adapter graph and regenerate authenticated original-upstream two-lockfile patch.
-- [ ] Verify targeted contracts/custody; push PR and freeze for fresh parent review.
+- [x] Resolve minimal adapter graph and regenerate authenticated original-upstream two-lockfile patch.
+- [x] Verify targeted contracts/custody; push PR and freeze for fresh parent review (host checkout-purity limitation recorded).
 - [ ] Parent-owned exact hosted full build/security/native qualification; failed37287250979 preserved.
