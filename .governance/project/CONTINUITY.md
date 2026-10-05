@@ -1,5 +1,11 @@
 # Issue 10 continuity
 
+## Issue #23 final binary security (2026-10-05)
+
+Fresh author /root/fix_zitadel23_binary_security; own D:/projects/service-lasso/zitadel23-binary-security, fix/23-binary-security from verified develop e584c4c16ebeaa66f3c720e205e471466e3a8c7e. SPEC-023 AC-023-1..6 binds issue23. Product edits held until parent reconciles independent investigator with author's source/caller pass and approves exact boundary. Existing dependency recipe permits go.mod/go.sum only; source import migration requires explicit narrow path/hash custody, never general exemption.
+
+Producer37291332340 full Windows source scan exit0 followed by actual Windows binary scan exit3 (10 advisories/5 modules). Diagnostic artifact11337098919 and exact report SHA25664c2a2b94072b75e29cedf6ebe3f54a05547d7fe5ad4fa8589d2d8d6277ebff1 retained by parent. No native/staged candidate/publisher acceptance. Parent owns merge/new producer and fresh postpatch review; Mac verifier owns separate runtime lane. Author does not use retired18 checkout, alter other workers, dispatch, perform full local Linux builds or mutate shared WSL/host/trust/clock/toolchains.
+
 ## Issue #18 supported default security (2026-10-05)
 
 Fresh owner /root/fix_zitadel_supported_package_security; isolated D:/projects/service-lasso/zitadel18-default-package-security, typed fix/18-default-package-security, PR #19. Preparation rebased only from current develop c494e8396731d89fd601c39abbf391b41f8611e4 after #17 landed. No source recipe/overlay files changed. Fresh investigator identified shared packageZitadel default as vulnerable boundary. SPEC-018 records explicit transition: original packages are baseline-only; normal packaging requires authenticated repaired source output.

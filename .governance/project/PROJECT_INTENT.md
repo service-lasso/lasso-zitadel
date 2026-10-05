@@ -1,5 +1,7 @@
 # ZITADEL wrapper intent
 
+Issue #23 / active [SPEC-023](../specs/SPEC-023-final-binary-security.md) AC-023-1..6: remediate final-binary findings from producer37291332340 without weakening authentication, origin, custody, scanner, native or publication gates. Independent investigation and parent reconciliation precede product edits; any necessary import migration must use exact approved paths and authenticated original/effective hashes. Existing source-zero evidence does not qualify affected binary bytes.
+
 Package ZITADEL v4.14.0 for Service Lasso with authenticated dependency repairs and unchanged public service contracts. Issue #18 binds default Windows, Linux and modern Darwin amd64 packages to the same repaired source and complete generated assets as prerequisite #17, using official maintained Go 1.26.8. Original upstream binaries remain baseline qualification inputs only. Issue #10 retains the explicitly selected Darwin amd64 macOS 11 compatibility profile from upstream commit 10b1af91d68700707d41e820545e478cf267511b using its private maintained Go 1.26.8 compiler recipe. Development only; no GA declaration.
 
 Authoritative issue: https://github.com/service-lasso/lasso-zitadel/issues/10
