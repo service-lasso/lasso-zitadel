@@ -186,10 +186,18 @@ jobs:
         with:
           name: zitadel-compatibility
           path: ${{ runner.temp }}/zitadel-package
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        if: matrix.arch == 'amd64'
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
+        if: matrix.arch == 'amd64'
+        with:
+          go-version: 1.26.8
+          cache: false
       - name: Modern Intel compatibility ZITADEL version and help regression
         if: matrix.arch == 'amd64'
         run: |
           set -euo pipefail
+          python3 -B scripts/verify-binary-symbols.py --archive "$RUNNER_TEMP/zitadel-package/lasso-zitadel-v4.14.0-darwin-amd64-macos11.tar.gz"
           mkdir "$RUNNER_TEMP/zitadel-runtime"
           tar -xzf "$RUNNER_TEMP/zitadel-package/lasso-zitadel-v4.14.0-darwin-amd64-macos11.tar.gz" -C "$RUNNER_TEMP/zitadel-runtime"
           "$RUNNER_TEMP/zitadel-runtime/zitadel" --version | grep -F v4.14.0

@@ -2,6 +2,7 @@
 import hashlib,json,os,pathlib,subprocess,sys,tarfile,tempfile,zipfile
 sys.dont_write_bytecode=True
 from macos11_dependency_recipe import identity
+from binary_symbols import inspect_symbols
 root=pathlib.Path(__file__).resolve().parent.parent
 GO_HASH='d0f743b33e8d8945e6b1f432edd15785c70507121d6e2a723b21285eddf8b57b'
 def digest(data): return hashlib.sha256(data).hexdigest()
@@ -64,6 +65,7 @@ def inspect_binary(read,platform):
             lines=value.splitlines()
             return [lines[0].rsplit(': ',1)[-1],*lines[1:]] if lines else []
         if normalized(actual)!=normalized(claimed): raise SystemExit('Actual binary module inventory differs from embedded proof')
+        inspect_symbols('go',binary,env)
         tools=directory/'scanner';tools.mkdir();env['GOBIN']=str(tools)
         subprocess.run(['go','install','golang.org/x/vuln/cmd/govulncheck@v1.7.0'],env=env,cwd=directory,check=True,timeout=600)
         scanner=tools/('govulncheck.exe' if os.name=='nt' else 'govulncheck')

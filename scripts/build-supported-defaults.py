@@ -2,6 +2,7 @@
 import hashlib,importlib.util,json,os,pathlib,subprocess,sys,time
 sys.dont_write_bytecode=True
 from macos11_dependency_recipe import identity
+from binary_symbols import inspect_symbols
 root,owned=map(pathlib.Path,sys.argv[1:3])
 spec=importlib.util.spec_from_file_location('security_runner',root/'scripts/run-macos11-security.py')
 runner=importlib.util.module_from_spec(spec);spec.loader.exec_module(runner)
@@ -32,10 +33,11 @@ for platform,goos in [('win32','windows'),('linux','linux'),('darwin','darwin')]
     binary=target/('zitadel.exe' if platform=='win32' else 'zitadel')
     targetenv=dict(env,GOOS=goos)
     stamp=time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime())
-    flags='-linkmode=internal -s -w -X github.com/zitadel/zitadel/cmd/build.commit='+assets['upstreamSHA']+' -X github.com/zitadel/zitadel/cmd/build.date='+stamp+' -X github.com/zitadel/zitadel/cmd/build.version=v4.14.0'
+    flags='-linkmode=internal -X github.com/zitadel/zitadel/cmd/build.commit='+assets['upstreamSHA']+' -X github.com/zitadel/zitadel/cmd/build.date='+stamp+' -X github.com/zitadel/zitadel/cmd/build.version=v4.14.0'
     with (target/'build.log').open('w') as log:
         subprocess.run([go,'build','-mod=readonly','-x','-work','-trimpath','-ldflags='+flags,'-o',str(binary),'.'],cwd=source,env=targetenv,stderr=log,check=True)
     (target/'modules.txt').write_text(subprocess.check_output([go,'version','-m',str(binary)],env=dict(env,GOOS='linux'),text=True))
+    inspect_symbols(go,binary,dict(env,GOOS='linux'))
     runner.run_stage('default-source-'+platform,[scanner,'./...'],source,targetenv,owned,2700)
     runner.run_stage('default-binary-'+platform,[scanner,'-mode=binary',str(binary)],source,dict(env,GOOS='linux'),owned,900)
     records[platform]={'goos':goos,'arch':'amd64','binarySHA256':digest(binary),

@@ -1,7 +1,9 @@
 import hashlib,json,os,pathlib,subprocess,sys
 sys.dont_write_bytecode = True
 from macos11_dependency_recipe import identity
+from binary_symbols import inspect_symbols
 root,owned=map(pathlib.Path,sys.argv[1:])
+inspect_symbols('go',owned/'artifacts/zitadel',dict(os.environ,GOOS='linux'))
 def sha(p): return hashlib.sha256(p.read_bytes()).hexdigest()
 pins=json.loads((root/'toolchains/macos11/input-pins.json').read_text())
 files=['upstream.tar.gz','go.tar.gz','go.src.tar.gz','recipe/go1.26.8.patch',
@@ -12,7 +14,7 @@ environment=('GOENV','GOWORK','GOTOOLCHAIN','GOFLAGS','GOOS','GOARCH','GOAMD64',
 doc={'profile':'custom-maintained-go1.26.8-darwin-amd64-macos11',
      'wrapperSHA':os.environ['WRAPPER_SHA'],'upstreamSHA':pins['upstreamSHA'],
      'brokerRecipeSHA':pins['brokerRecipeSHA'],'buildDate':os.environ['BUILD_DATE'],
-     'version':'v4.14.0','linkFlags':'-linkmode=internal -s -w',
+     'version':'v4.14.0','linkFlags':'-linkmode=internal',
      'buildFlags':'-mod=readonly -x -work -trimpath',
      'binaryEnvironment':{'GOOS':'darwin','GOARCH':'amd64','GOAMD64':'v1','CGO_ENABLED':'0'},
      'environment':json.loads(subprocess.check_output(['go','env','-json',*environment],text=True)),
