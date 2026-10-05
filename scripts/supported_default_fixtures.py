@@ -5,7 +5,7 @@ def make_archive(path,platform,head,root,mutate=None):
     recipe=identity(root)
     binary=b'Synthetic boundary binary, not executable\n';report=b'Fixture scanner report; not scanner acceptance\n'
     goos={'win32':'windows','linux':'linux','darwin':'darwin'}[platform]
-    modules=('fixture: go1.26.8\n\tbuild\tGOOS='+goos+'\n\tbuild\tCGO_ENABLED=0\n').encode()
+    modules=('fixture: go1.26.8\n\tbuild\tGOOS='+goos+'\n\tbuild\tGOARCH=amd64\n\tbuild\tGOAMD64=v1\n\tbuild\tCGO_ENABLED=0\n').encode()
     sha=lambda b:hashlib.sha256(b).hexdigest()
     assets=json.dumps({'wrapperSHA':head,'upstreamSHA':recipe and '10b1af91d68700707d41e820545e478cf267511b','dependencyRecipe':recipe}).encode()
     generator=b'{"fixture":"not full generated acceptance"}'

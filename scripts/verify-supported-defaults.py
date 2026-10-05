@@ -5,6 +5,18 @@ from macos11_dependency_recipe import identity
 root=pathlib.Path(__file__).resolve().parent.parent
 GO_HASH='d0f743b33e8d8945e6b1f432edd15785c70507121d6e2a723b21285eddf8b57b'
 def digest(data): return hashlib.sha256(data).hexdigest()
+def build_settings(modules,platform):
+    required={'GOOS':{'win32':'windows','linux':'linux','darwin':'darwin'}[platform],
+              'GOARCH':'amd64','GOAMD64':'v1','CGO_ENABLED':'0'}
+    rows={}
+    for line in modules.splitlines():
+        if not line.startswith('\tbuild\t'):continue
+        entry=line.removeprefix('\tbuild\t')
+        if '=' not in entry:raise SystemExit('Malformed actual binary build setting')
+        key,value=entry.split('=',1)
+        if key in rows:raise SystemExit('Duplicate actual binary build setting')
+        rows[key]=value
+    if any(rows.get(k)!=v for k,v in required.items()):raise SystemExit('Actual binary target/portable CPU settings disagreement')
 def validate(read,platform,head):
     doc=json.loads(read('default-build-provenance.json'));assets=json.loads(read('asset-provenance.json'))
     if doc.get('schema')!=1 or doc.get('profile')!='authenticated-maintained-go1.26.8-defaults' or doc.get('wrapperSHA')!=head:
@@ -21,8 +33,9 @@ def validate(read,platform,head):
     if target.get('goos')!=goos or target.get('arch')!='amd64' or target.get('binarySHA256')!=digest(read('zitadel.exe' if platform=='win32' else 'zitadel')) or target.get('modulesSHA256')!=digest(read('modules.txt')):
         raise SystemExit('Default target/binary/module disagreement')
     modules=read('modules.txt').decode()
-    if 'go1.26.8' not in modules or '\tbuild\tGOOS='+goos not in modules or '\tbuild\tCGO_ENABLED=0' not in modules:
+    if not modules.splitlines() or modules.splitlines()[0].rsplit(': ',1)[-1]!='go1.26.8':
         raise SystemExit('Default actual binary build information disagreement')
+    build_settings(modules,platform)
     metadata=json.loads(read('SERVICE-LASSO-PACKAGE.json'))
     if metadata.get('profile')!=doc['profile'] or metadata.get('binarySource')!='authenticated-source-build' or metadata.get('wrapperCommit')!=head or metadata.get('binarySHA256')!=target['binarySHA256'] or metadata.get('platform')!=platform or metadata.get('arch')!='amd64' or metadata.get('upstream',{}).get('sourceCommit')!=doc['upstreamSHA']:
         raise SystemExit('Default package metadata disagreement')
@@ -45,6 +58,7 @@ def inspect_binary(read,platform):
         directory=pathlib.Path(temporary);binary=directory/('zitadel.exe' if platform=='win32' else 'zitadel')
         binary.write_bytes(read(binary.name))
         actual=subprocess.check_output(['go','version','-m',str(binary)],env=env,text=True)
+        build_settings(actual,platform)
         claimed=read('modules.txt').decode()
         def normalized(value):
             lines=value.splitlines()

@@ -1,5 +1,5 @@
 """AC-018-3/5 rejection tests; synthetic metadata never qualifies binaries."""
-import importlib.util,json,pathlib,subprocess,sys,tempfile
+import hashlib,importlib.util,json,pathlib,subprocess,sys,tempfile
 sys.dont_write_bytecode=True
 from supported_default_fixtures import make_archive
 root=pathlib.Path(__file__).resolve().parent.parent
@@ -35,4 +35,14 @@ with tempfile.TemporaryDirectory(prefix='zitadel18-boundary-') as directory:
             doc=json.loads(f['default-build-provenance.json']);doc['targets'][platform]['binary']['exitCode']=3;f['default-build-provenance.json']=json.dumps(doc).encode()
         check(failed_scan)
         check(lambda f:f.update({'SERVICE-LASSO-PACKAGE.json':b'{"profile":"official-baseline"}'}))
+        def settings_change(transform):
+            def mutate(f):
+                f['modules.txt']=transform(f['modules.txt'])
+                doc=json.loads(f['default-build-provenance.json'])
+                doc['targets'][platform]['modulesSHA256']=hashlib.sha256(f['modules.txt']).hexdigest()
+                f['default-build-provenance.json']=json.dumps(doc).encode()
+            return mutate
+        check(settings_change(lambda b:b.replace(b'GOAMD64=v1',b'GOAMD64=v3')))
+        check(settings_change(lambda b:b.replace(b'\tbuild\tGOARCH=amd64\n',b'')))
+        check(settings_change(lambda b:b+b'\tbuild\tGOAMD64=v1\n'))
 print('Supported default boundaries passed:',count)
