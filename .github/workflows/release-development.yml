@@ -17,6 +17,9 @@ permissions:
 
 jobs:
   authorize:
+    permissions:
+      contents: read
+      actions: read
     if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     outputs:
