@@ -1,5 +1,7 @@
 """Authenticate archives and exact extracted build input, never just claims."""
 import hashlib,json,os,pathlib,subprocess,sys,tarfile
+sys.dont_write_bytecode = True
+from macos11_generated_inventory import source_inventory, verify_generated, verify_source
 
 root,owned=map(pathlib.Path,sys.argv[1:3])
 stage=sys.argv[3]
@@ -22,32 +24,11 @@ equal(owned/'upstream.tar.gz',pins['upstreamArchiveSHA256'])
 equal(owned/'go.tar.gz','d0f743b33e8d8945e6b1f432edd15785c70507121d6e2a723b21285eddf8b57b')
 source=owned/('zitadel-'+pins['upstreamSHA'])
 for relative,expected in assets['lockfiles'].items(): equal(source/relative,expected)
-excluded={'node_modules','.nx','.angular','.artifacts','.git'}
-actual={str(p.relative_to(source)):digest(p) for p in sorted(source.rglob('*'))
-        if p.is_file() and not excluded.intersection(p.relative_to(source).parts)}
-if actual!=assets['effectiveSourceHashes']:
+actual = source_inventory(source)
+if actual != assets['effectiveSourceHashes']:
     raise SystemExit('Effective source inventory changed since full asset generation')
-generated=('pkg/grpc/','openapi/v2/zitadel/','internal/api/ui/console/static/',
-           'internal/api/ui/login/static/resources/themes/zitadel/css/',
-           'internal/api/ui/login/statik/statik.go','internal/notification/statik/statik.go',
-           'internal/statik/statik.go','internal/api/assets/authz.go','internal/api/assets/router.go',
-           'apps/docs/content/apis/assets/assets.mdx','console/dist/',
-           'console/src/app/proto/generated/','packages/zitadel-proto/src/',
-           'packages/zitadel-proto/dist/',
-           'packages/zitadel-client/dist/')
-with tarfile.open(owned/'upstream.tar.gz') as archive:
-    original_paths=set()
-    for member in archive.getmembers():
-        if not member.isfile(): continue
-        relative=member.name.split('/',1)[1]
-        original_paths.add(relative)
-        original=hashlib.sha256(archive.extractfile(member).read()).hexdigest()
-        if actual.get(relative)!=original and not relative.startswith(generated):
-            raise SystemExit('Ungenerated upstream source drift: '+relative)
-for relative in actual.keys()-original_paths:
-    if not relative.startswith(generated):
-        raise SystemExit('Unexpected non-generated source addition: '+relative)
-for relative,expected in assets['generatedAssets'].items(): equal(source/relative,expected)
+verify_source(owned/'upstream.tar.gz', actual)
+verify_generated(actual, assets['generatedAssets'])
 for relative,expected in assets['tools'].items(): equal(source/'.artifacts/bin/linux/amd64'/relative,expected)
 equal(owned/'api-generator-inventory.json',assets['apiGeneratorInventorySHA256'])
 patches={}

@@ -5,3 +5,5 @@ Package the unchanged upstream ZITADEL v4.14.0 identity service for Service Lass
 Authoritative issue: https://github.com/service-lasso/lasso-zitadel/issues/10
 Active requirements: ../specs/SPEC-010-macos11-compatibility.md
 Governance execution rules are the Service Lasso Core .governance/rules/gov-01 through gov-14 plus gov-09-release-authority, supplied and read for this bounded delegated work.
+
+Issue #10 generated inventory follow-up: use a single bounded output mapping for recording and verification, derived from the immutable upstream generator contracts; preserve authenticated source and compiler boundaries. Failed run 37267875269 is diagnosis evidence, not compatibility acceptance.
