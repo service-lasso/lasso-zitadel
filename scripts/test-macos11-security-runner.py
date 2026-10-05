@@ -9,6 +9,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+# Producer preflight must preserve the authenticated pristine checkout.
+sys.dont_write_bytecode = True
 spec = importlib.util.spec_from_file_location('runner', pathlib.Path(__file__).with_name('run-macos11-security.py'))
 runner = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(runner)

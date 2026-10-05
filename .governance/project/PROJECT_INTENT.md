@@ -9,3 +9,6 @@ Governance execution rules are the Service Lasso Core .governance/rules/gov-01 t
 Issue #10 generated inventory follow-up: use a single bounded output mapping for recording and verification, derived from the immutable upstream generator contracts; preserve authenticated source and compiler boundaries. Failed run 37267875269 is diagnosis evidence, not compatibility acceptance.
 
 Issue #13 / active [SPEC-013](../specs/SPEC-013-security-runner-budget.md) AC-013-1..5: budget only isolated scanner processes and stream nonsecret resource evidence after repeated hosted runner interruption. Keep full text-mode source/binary coverage and all existing authentication/native/publication gates. Runner shutdown is directly observed; OOM and successful remediation are unproven until parent-owned exact-candidate hosted verification.
+
+Issue #15 / active [SPEC-015](../specs/SPEC-015-preflight-checkout-purity.md): default-Python producer preflight tests leave a fresh checkout pristine; preserve all producer, authentication, scanner and publisher gates.
+
