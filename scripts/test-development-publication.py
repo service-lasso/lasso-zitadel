@@ -52,6 +52,15 @@ with tempfile.TemporaryDirectory(prefix='zitadel10-publication-boundaries-') as 
     run('verify-development-assets.py',[assets,'verify'],True)
     (assets/'unexpected-file').write_text('extra');run('verify-development-assets.py',[assets,'verify'],False);(assets/'unexpected-file').unlink()
     checksum=(assets/'SHA256SUMS.txt').read_bytes();(assets/'SHA256SUMS.txt').write_bytes(checksum+checksum.splitlines(keepends=True)[0]);run('verify-development-assets.py',[assets,'verify'],False);(assets/'SHA256SUMS.txt').write_bytes(checksum)
+    for omitted in checksum.splitlines(keepends=True):
+        (assets/'SHA256SUMS.txt').write_bytes(checksum.replace(omitted,b''))
+        run('verify-development-assets.py',[assets,'verify'],False)
+    (assets/'SHA256SUMS.txt').write_bytes(checksum)
+    for payload in assets.iterdir():
+        if payload.name=='SHA256SUMS.txt': continue
+        original=payload.read_bytes();payload.write_bytes(original+b'published drift')
+        run('verify-development-assets.py',[assets,'verify'],False)
+        payload.write_bytes(original)
     readback={'tagName':tag,'name':tag,'targetCommitish':sha,'isDraft':False,'isPrerelease':True,
               'assets':[{'name':p.name,'digest':'sha256:'+hashlib.sha256(p.read_bytes()).hexdigest(),'size':p.stat().st_size} for p in assets.iterdir()]}
     remote=directory/'readback.json'

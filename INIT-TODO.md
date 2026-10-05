@@ -13,3 +13,5 @@
 - [ ] Exact protected prerelease readback and released tutorial consumer reacquisition.
 
 Owner /root/implement_zitadel10_mac11; active fix/10-macos11-compat PR11 branch retained until landing. Private evidence/generated fixtures remain outside checkout; vendor/output/dist covered by existing narrow ignores. WSL failure logs and successful diagnostic full Nx evidence retained; parent directs hosted builds to avoid shared host mutation. No final compatibility, published or GA claim.
+- [x] Reviewer P2 standalone packaging closure: fixed required hashes plus direct input guard and source inventory equality; 16 negative boundary checks.
+- [x] Complete published payload/checksum reacquisition and 45 publication boundary checks; fresh independent review still pending.

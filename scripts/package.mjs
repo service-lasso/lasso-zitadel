@@ -181,9 +181,21 @@ export async function packageZitadel(platform = targetPlatform, version = zitade
 export async function packageMacos11(buildDirectory, releaseVersion) {
   if (!buildDirectory || !path.isAbsolute(buildDirectory)) throw new Error("Absolute completed compatibility build required");
   const provenance = JSON.parse(await readFile(path.join(buildDirectory, "artifacts/build-provenance.json"), "utf8"));
+  const requiredHashes = [
+    "upstream.tar.gz", "go.tar.gz", "go.src.tar.gz", "recipe/go1.26.8.patch",
+    "recipe/source-hashes.json", "go/pkg/tool/linux_amd64/link", "linker-build.log",
+    "zitadel-build.log", "asset-provenance.json", "api-generator-inventory.json",
+    "module-verify.log", "artifacts/zitadel",
+  ];
+  if (!provenance.hashes || requiredHashes.some((key) => !Object.hasOwn(provenance.hashes, key) || !/^[a-f0-9]{64}$/.test(provenance.hashes[key]))) {
+    throw new Error("Missing or invalid mandatory build provenance hashes");
+  }
   const pins = JSON.parse(await readFile(path.join(repoRoot, "toolchains/macos11/input-pins.json"), "utf8"));
   const assetBytes = await readFile(path.join(buildDirectory, "asset-provenance.json"));
   const assets = JSON.parse(assetBytes.toString("utf8"));
+  if (!provenance.effectiveSourceHashes || JSON.stringify(Object.entries(provenance.effectiveSourceHashes).sort()) !== JSON.stringify(Object.entries(assets.effectiveSourceHashes ?? {}).sort())) {
+    throw new Error("Build and asset effective source inventories disagree");
+  }
   const head = spawnSync("git", ["rev-parse", "HEAD"], { cwd: repoRoot, encoding: "utf8" });
   if (head.status !== 0 || head.stdout.trim() !== provenance.wrapperSHA) throw new Error("Build must bind current wrapper commit");
   if (!/^[a-f0-9]{40}$/.test(pins.brokerRecipeSHA ?? "") || provenance.brokerRecipeSHA !== pins.brokerRecipeSHA) throw new Error("Reviewed recipe pin disagreement");
@@ -198,6 +210,8 @@ export async function packageMacos11(buildDirectory, releaseVersion) {
     if (path.isAbsolute(relative) || relative.split(/[\\/]/).includes("..")) throw new Error("Unsafe provenance path");
     if (createHash("sha256").update(await readFile(path.join(buildDirectory, relative))).digest("hex") !== expected) throw new Error(`Provenance input drift: ${relative}`);
   }
+  // Standalone packaging authenticates archives, source, assets and the linked toolchain.
+  run(process.platform === "win32" ? "python" : "python3", [path.join(repoRoot, "scripts/verify-macos11-inputs.py"), repoRoot, buildDirectory, "linked"]);
   if (!/^\d{4}\.\d{1,2}\.\d{1,2}-[a-f0-9]{7}$/.test(releaseVersion ?? "") || !releaseVersion.endsWith(`-${provenance.wrapperSHA.slice(0, 7)}`)) {
     throw new Error("Compatibility release tag must bind exact wrapper SHA");
   }

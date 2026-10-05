@@ -12,6 +12,8 @@ Status: Active; approved bounded architecture through issue #10 and owner orches
 
 Traceability: issue #10 maps AC-010-1..7; consumer lesson-todo #4 maps AC-010-6..7. All gates remain pending until direct evidence is recorded. Original published dyld failure is preserved in parent evidence; rebuilding alone is partial proof.
 
+AC-010-4 standalone packaging requires every producer hash key, matching build/asset effective source inventories and direct linked-stage authentication of archives, source, generated assets and toolchain before staging. AC-010-7 readback reacquires every published payload and checksum and independently verifies the complete fixed inventory, checksum lines and API digest/size bindings.
+
 ## Hosted producer and publication binding
 
 The accepted AC-010-7 architecture is one develop-only exact-SHA workflow: repeat all original official-platform tests, run full API/console and private Go generation once on an owned hosted Linux runner, scan the custom source/binary, and compare immutable official/custom trust probes on modern Intel and ARM64 macOS. A protected development-candidate job waits for the already-authorized owner User 170312 and independently validates that user's actual issue-10 comment containing the exact run/SHA/archive/binary/recipe hashes and every mandatory Big Sur/browser/lifecycle gate. No dispatch-supplied pass flag is accepted.

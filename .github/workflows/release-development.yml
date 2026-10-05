@@ -269,3 +269,5 @@ jobs:
           test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$CANDIDATE_VERSION" --jq .object.type)" = commit
           gh release view "$CANDIDATE_VERSION" --json tagName,name,targetCommitish,isDraft,isPrerelease,assets > release-readback.json
           python3 scripts/verify-development-assets.py release-assets readback release-readback.json
+          gh release download "$CANDIDATE_VERSION" --dir published-readback
+          python3 scripts/verify-development-assets.py published-readback readback release-readback.json
