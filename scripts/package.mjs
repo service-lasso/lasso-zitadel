@@ -215,6 +215,9 @@ export async function packageMacos11(buildDirectory, releaseVersion) {
   await chmod(path.join(packageRoot, "zitadel"), 0o755);
   const upstreamRoot = path.join(buildDirectory, `zitadel-${provenance.upstreamSHA}`);
   for (const file of ["README.md", "LICENSE"]) await cp(path.join(upstreamRoot, file), path.join(packageRoot, file));
+  await cp(path.join(buildDirectory, "go/LICENSE"), path.join(packageRoot, "GO-LICENSE"));
+  await cp(path.join(buildDirectory, "recipe/go1.26.8.patch"), path.join(packageRoot, "go1.26.8-compatibility.patch"));
+  await cp(path.join(buildDirectory, "recipe/source-hashes.json"), path.join(packageRoot, "toolchain-source-hashes.json"));
   for (const [source, destination] of [["artifacts/build-provenance.json", "build-provenance.json"], ["asset-provenance.json", "asset-provenance.json"]]) {
     await cp(path.join(buildDirectory, source), path.join(packageRoot, destination));
   }

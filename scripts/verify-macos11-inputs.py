@@ -31,12 +31,17 @@ generated=('pkg/grpc/','openapi/v2/zitadel/','internal/api/ui/console/static/',
            'packages/zitadel-proto/dist/',
            'packages/zitadel-client/dist/')
 with tarfile.open(owned/'upstream.tar.gz') as archive:
+    original_paths=set()
     for member in archive.getmembers():
         if not member.isfile(): continue
         relative=member.name.split('/',1)[1]
+        original_paths.add(relative)
         original=hashlib.sha256(archive.extractfile(member).read()).hexdigest()
         if actual.get(relative)!=original and not relative.startswith(generated):
             raise SystemExit('Ungenerated upstream source drift: '+relative)
+for relative in actual.keys()-original_paths:
+    if not relative.startswith(generated):
+        raise SystemExit('Unexpected non-generated source addition: '+relative)
 for relative,expected in assets['generatedAssets'].items(): equal(source/relative,expected)
 for relative,expected in assets['tools'].items(): equal(source/'.artifacts/bin/linux/amd64'/relative,expected)
 patches={}

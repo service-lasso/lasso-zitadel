@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 umask 077
+export PATH=/usr/local/bin:/usr/bin:/bin
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OWNED="${1:?completed private full-asset build directory}"
 test -z "$(git -C "$ROOT" status --porcelain --untracked-files=all)"
