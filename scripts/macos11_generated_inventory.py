@@ -19,7 +19,10 @@ EXACT = {
     'internal/api/ui/login/static/resources/themes/zitadel/css/zitadel.css.map',
 }
 OUTPUTS = {
-    'pkg/grpc/': ('.go',),
+    # Buf's pinned Go plugins, including the two upstream custom generators.
+    # Nx's directory copy/output glob also contains handwritten Go helpers.
+    'pkg/grpc/': ('.pb.go', '_grpc.pb.go', '.pb.gw.go', '.pb.validate.go',
+                  '.pb.authoptions.go', '.pb.zitadel.go', '.connect.go'),
     'openapi/v2/zitadel/': ('.json',),
     'console/src/app/proto/generated/': ('.js', '.ts', '.json'),
     'packages/zitadel-proto/cjs/': ('.js',),
@@ -34,6 +37,9 @@ OUTPUTS = {
 def generated(relative):
     p = pathlib.PurePosixPath(relative)
     if p.is_absolute() or '..' in p.parts or '\\' in relative:
+        return False
+    # The immutable upstream tree tracks this input beside copied Angular files.
+    if relative == 'internal/api/ui/console/static/gitkeep':
         return False
     return relative in EXACT or any(
         relative.startswith(root) and (extensions is None or relative.endswith(extensions))

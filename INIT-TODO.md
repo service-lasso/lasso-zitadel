@@ -23,3 +23,9 @@ Owner /root/implement_zitadel10_mac11; active fix/10-macos11-compat PR11 branch 
 - [x] Shared bounded mapping, complete recorder/verifier inventory equality and negative regressions (5 groups; 45 publication and 16 standalone packaging checks pass).
 - [ ] Push scoped PR into develop for distinct fresh review; parent owns final hosted candidate/native acceptance.
 Owner: /root/fix_zitadel10_generated_inventory. Prior PR #11 merged; its preserved checkout is not reused.
+
+## PR #12 handwritten-source review correction
+- [x] Successor author /root/fix_zitadel12_handwritten_guard; clean assigned 9e8b8d6 verified before edits, existing issue branch retained for governed review/landing.
+- [x] AC-010-1/3/4: restrict Go outputs to seven pinned plugin filename contracts; preserve tracked console static/gitkeep; audit every rule against immutable recursive upstream tree.
+- [x] Six generated inventory groups including tracked handwritten modification/deletion with fresh recording, arbitrary Go addition and all legitimate plugin basenames; old code fails new regressions. Existing 45 publication and 16 packaging boundary checks pass.
+- [ ] Parent-owned fresh independent review, governed landing and single final hosted full generation; native/browser acceptance remains separate.
