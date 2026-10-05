@@ -39,3 +39,9 @@ Owner: /root/fix_zitadel10_generated_inventory. Prior PR #11 merged; its preserv
 - [ ] Parent: merge exact reviewed source, then qualify exact candidate on hosted/native/protected publication boundaries.
 
 This is scoped remediation tracking, not a claim of repository bootstrap completion.
+
+## Issue #15 checkout-purity repair
+- [x] Fresh dedicated typed branch from current develop c17c40a; other owned checkouts preserved.
+- [x] Reproduce passing preflight tests creating untracked helper bytecode and producer guard exit 1; evidence outside checkout.
+- [ ] Implement AC-015-1..3, verify regression and freeze pushed PR for fresh parent review.
+- [ ] Parent-owned exact merged hosted/native/publication qualification remains separate.
