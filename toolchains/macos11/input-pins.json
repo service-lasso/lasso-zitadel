@@ -1,0 +1,9 @@
+{
+  "upstreamSHA": "10b1af91d68700707d41e820545e478cf267511b",
+  "upstreamArchiveSHA256": "b9e674b87de68541639aef83f6fa4da4fe75d857cce65606a72197acfd0efdfd",
+  "nodeVersion": "22.23.3",
+  "nodeArchiveSHA256": "df450af89261115ef9f9e3830c3eeb2cc9213b63c720b1af623cb5dcbe2e02de",
+  "pnpmVersion": "10.30.3",
+  "brokerRecipeSHA": null,
+  "brokerRecipeStatus": "Awaiting final immutable reviewed Broker issue 188 recipe; binary build must fail closed until pinned."
+}
