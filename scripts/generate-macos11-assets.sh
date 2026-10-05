@@ -32,6 +32,13 @@ test "$(node --version)" = v22.23.3
 npm install --prefix "$OWNED/pnpm-runtime" pnpm@10.30.3 > "$OWNED/pnpm-runtime.log" 2>&1
 export PATH="$OWNED/pnpm-runtime/node_modules/.bin:$PATH"
 test "$(pnpm --version)" = 10.30.3
+if ! command -v unzip >/dev/null; then
+  mkdir "$OWNED/os-build-tools"
+  curl -fL https://archive.ubuntu.com/ubuntu/pool/main/u/unzip/unzip_6.0-28ubuntu4.1_amd64.deb -o "$OWNED/os-build-tools/unzip.deb"
+  echo "a505b9d491386167bd8e14e3383315a4a7d6539e4406745901ccf009a7988271  $OWNED/os-build-tools/unzip.deb" | sha256sum -c -
+  dpkg-deb -x "$OWNED/os-build-tools/unzip.deb" "$OWNED/os-build-tools/root"
+  export PATH="$OWNED/os-build-tools/root/usr/bin:$PATH"
+fi
 cd "$OWNED/zitadel-$SOURCE"
 sha256sum pnpm-lock.yaml go.mod go.sum > "$OWNED/lockfiles.before"
 export NX_DAEMON=false NX_SKIP_NX_CACHE=true NX_NO_CLOUD=true

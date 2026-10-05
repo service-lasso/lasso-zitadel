@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
-import { chmod, cp, mkdir, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { chmod, cp, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -102,6 +103,13 @@ async function findBinary(root, binaryName) {
 }
 
 export async function packageZitadel(platform = targetPlatform, version = zitadelVersion) {
+  if (process.env.ZITADEL_PACKAGE_PROFILE === "macos11") {
+    if (platform !== "darwin" || version !== "v4.14.0") throw new Error("Compatibility profile requires Darwin v4.14.0");
+    return packageMacos11(process.env.ZITADEL_COMPAT_BUILD, process.env.SERVICE_LASSO_RELEASE_VERSION);
+  }
+  if (process.env.ZITADEL_PACKAGE_PROFILE && process.env.ZITADEL_PACKAGE_PROFILE !== "official") {
+    throw new Error("Unknown ZITADEL_PACKAGE_PROFILE");
+  }
   const target = targets[platform];
   if (!target) {
     throw new Error(`Unsupported target platform: ${platform}`);
@@ -170,6 +178,43 @@ export async function packageZitadel(platform = targetPlatform, version = zitade
   return outputPath;
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+export async function packageMacos11(buildDirectory, releaseVersion) {
+  if (!buildDirectory || !path.isAbsolute(buildDirectory)) throw new Error("Absolute completed compatibility build required");
+  const provenance = JSON.parse(await readFile(path.join(buildDirectory, "artifacts/build-provenance.json"), "utf8"));
+  const head = spawnSync("git", ["rev-parse", "HEAD"], { cwd: repoRoot, encoding: "utf8" });
+  if (head.status !== 0 || head.stdout.trim() !== provenance.wrapperSHA) throw new Error("Build must bind current wrapper commit");
+  if (!/^\d{4}\.\d{1,2}\.\d{1,2}-[a-f0-9]{7}$/.test(releaseVersion ?? "") || !releaseVersion.endsWith(`-${provenance.wrapperSHA.slice(0, 7)}`)) {
+    throw new Error("Compatibility release tag must bind exact wrapper SHA");
+  }
+  if (provenance.profile !== "custom-maintained-go1.26.8-darwin-amd64-macos11" || provenance.upstreamSHA !== "10b1af91d68700707d41e820545e478cf267511b") {
+    throw new Error("Unexpected compatibility source/profile");
+  }
+  const binary = path.join(buildDirectory, "artifacts/zitadel");
+  const hash = createHash("sha256").update(await readFile(binary)).digest("hex");
+  if (hash !== provenance.hashes["artifacts/zitadel"]) throw new Error("Compatibility binary hash mismatch");
+  const assetName = "lasso-zitadel-v4.14.0-darwin-amd64-macos11.tar.gz";
+  const packageRoot = path.join(repoRoot, "output/package/v4.14.0/darwin-amd64-macos11/payload");
+  if (existsSync(packageRoot)) throw new Error("Compatibility staging already exists; use fresh owned checkout/output");
+  await mkdir(packageRoot, { recursive: true });
+  await cp(binary, path.join(packageRoot, "zitadel"));
+  await chmod(path.join(packageRoot, "zitadel"), 0o755);
+  const upstreamRoot = path.join(buildDirectory, `zitadel-${provenance.upstreamSHA}`);
+  for (const file of ["README.md", "LICENSE"]) await cp(path.join(upstreamRoot, file), path.join(packageRoot, file));
+  for (const [source, destination] of [["artifacts/build-provenance.json", "build-provenance.json"], ["asset-provenance.json", "asset-provenance.json"]]) {
+    await cp(path.join(buildDirectory, source), path.join(packageRoot, destination));
+  }
+  const manifest = JSON.parse(await readFile(path.join(repoRoot, "service.json"), "utf8"));
+  delete manifest.artifact.source.channel;
+  manifest.artifact.source.tag = releaseVersion;
+  manifest.artifact.platforms.darwin.assetName = assetName;
+  manifest.description += " Explicit custom maintained Go 1.26.8 Intel macOS 11 compatibility profile.";
+  await mkdir(path.join(repoRoot, "dist"), { recursive: true });
+  await writeFile(path.join(repoRoot, "dist/service-darwin-amd64-macos11.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+  await writeFile(path.join(packageRoot, "SERVICE-LASSO-PACKAGE.json"), `${JSON.stringify({ serviceId: "zitadel", upstream: { repo: "zitadel/zitadel", version: "v4.14.0", sourceCommit: provenance.upstreamSHA }, packagedBy: "service-lasso/lasso-zitadel", platform: "darwin", arch: "amd64", command: "./zitadel", profile: provenance.profile, binarySource: "custom-source-build", wrapperCommit: provenance.wrapperSHA, binarySHA256: hash }, null, 2)}\n`);
+  await writeFile(path.join(packageRoot, "COMPATIBILITY.txt"), "Custom maintained Go 1.26.8 build of exact ZITADEL v4.14.0 source for Intel macOS 11. This is a separately selected compatibility profile, not an official upstream Darwin binary or official Go macOS 11 support. See build-provenance.json and asset-provenance.json.\n");
+  return compressPackage(packageRoot, path.join(repoRoot, "dist", assetName), "tar.gz");
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   await packageZitadel();
 }
