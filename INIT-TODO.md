@@ -45,4 +45,3 @@ This is scoped remediation tracking, not a claim of repository bootstrap complet
 - [x] Reproduce passing preflight tests creating untracked helper bytecode and producer guard exit 1; evidence outside checkout.
 - [ ] Implement AC-015-1..3, verify regression and freeze pushed PR for fresh parent review.
 - [ ] Parent-owned exact merged hosted/native/publication qualification remains separate.
-
