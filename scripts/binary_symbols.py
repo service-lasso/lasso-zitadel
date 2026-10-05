@@ -28,10 +28,19 @@ def inspect_symbols(go, binary, env):
 
 def inspect_archive_symbols(path, env, inspector=inspect_symbols):
     with tarfile.open(path) as archive:
-        binaries = [m for m in archive.getmembers() if m.name in ('zitadel', './zitadel')]
-        if len(binaries) != 1 or not binaries[0].isfile():
+        members = {}
+        for member in archive.getmembers():
+            if member.name in ('.', './'):
+                if not member.isdir():
+                    raise SystemExit('Compatibility archive root must be a directory')
+                continue
+            name = member.name.removeprefix('./')
+            if not member.isfile() or not name or name in ('.', '..') or '/' in name or '\\' in name or name in members:
+                raise SystemExit('Unsafe or duplicate compatibility archive member')
+            members[name] = member
+        if 'zitadel' not in members:
             raise SystemExit('Compatibility archive requires one regular executable')
         with tempfile.TemporaryDirectory(prefix='zitadel23-archive-symbols-') as temporary:
             binary = pathlib.Path(temporary) / 'zitadel'
-            binary.write_bytes(archive.extractfile(binaries[0]).read())
+            binary.write_bytes(archive.extractfile(members['zitadel']).read())
             inspector('go', binary, env)

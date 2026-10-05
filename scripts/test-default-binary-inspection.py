@@ -18,14 +18,25 @@ class Inspection(unittest.TestCase):
                         archive.addfile(member,io.BytesIO(b'bin') if member.size else None)
             calls=[]
             def inspect(go,binary,env):calls.append(binary.read_bytes())
-            write(['./zitadel'])
+            write(['./zitadel','./README.md'])
             inspect_archive_symbols(path,{},inspector=inspect)
             self.assertEqual(calls,[b'bin'])
             for names,kind in [([],tarfile.REGTYPE),(['zitadel','./zitadel'],tarfile.REGTYPE),
-                               (['zitadel'],tarfile.SYMTYPE)]:
+                               (['zitadel'],tarfile.SYMTYPE),(['zitadel','././zitadel'],tarfile.REGTYPE),
+                               (['zitadel','.//zitadel'],tarfile.REGTYPE),(['zitadel','/zitadel'],tarfile.REGTYPE),
+                               (['zitadel','../zitadel'],tarfile.REGTYPE),(['zitadel','sub/file'],tarfile.REGTYPE),
+                               (['zitadel','sub\\file'],tarfile.REGTYPE),(['zitadel','.'],tarfile.REGTYPE),
+                               (['zitadel','README.md','./README.md'],tarfile.REGTYPE)]:
                 write(names,kind)
                 with self.assertRaises(SystemExit):inspect_archive_symbols(path,{},inspector=inspect)
             self.assertEqual(calls,[b'bin'])
+            with tarfile.open(path,'w:gz') as archive:
+                root_member=tarfile.TarInfo('./');root_member.type=tarfile.DIRTYPE
+                archive.addfile(root_member)
+                member=tarfile.TarInfo('./zitadel');member.size=3
+                archive.addfile(member,io.BytesIO(b'bin'))
+            inspect_archive_symbols(path,{},inspector=inspect)
+            self.assertEqual(calls,[b'bin',b'bin'])
 
     def test_required_scanner_symbols(self):
         good='140189cc0 R go:func.*\n140002200 T runtime.main\n'
