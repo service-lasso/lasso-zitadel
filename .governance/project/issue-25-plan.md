@@ -1,5 +1,9 @@
 # Issue #25 execution plan
 
+## Current exact-candidate qualification (2026-10-06)
+
+[Qualification ledger](QUALIFICATION-2026.10.5-d7e04eb.md) records integrated source d7e04ebd9489ddc8c6798e408cd8ce7992711146, producer37327998201 attempt1 SUCCESS, all eight complete source/actual binary scans exit0, five hosted native jobs SUCCESS, actual Intel Mac11 native18/paired SSO/SQL/lifecycle acceptance, protected owner receipt and public13-byte custody PASS. Historical pending/failure statements below remain time-scoped; they are superseded only for this candidate. Final literal public lesson04/docs1704 remain active; no programme/GA claim. Parent owns review/CI/landing and source-issue closure.
+
 Development; owner /root/fix_zitadel25_grpc_security; issue25; exact base4e58034f8a5510dba19fa1b3746817373781506a; worktree D:/projects/service-lasso/zitadel25-grpc-security; branch fix/25-grpc-security.
 
 1. Authenticate exact upstream archive and original before hashes. Apply committed existing overlay in managed temporary execution copy.

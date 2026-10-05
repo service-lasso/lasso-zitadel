@@ -1,5 +1,17 @@
 # Issue 10 work state
 
+## Current qualification reconciliation — issue #27 (2026-10-06)
+
+Historical sections below retain the source-author work state at capture time. Current exact-candidate outcomes are authoritative in [.governance/project/QUALIFICATION-2026.10.5-d7e04eb.md](.governance/project/QUALIFICATION-2026.10.5-d7e04eb.md).
+
+- [x] Source27 PR28 fresh independent CLEAR review, official Go1.26.8 four-check CI37327440126 SUCCESS and governed integration d7e04eb.
+- [x] Prerequisites17/18/21/23/25 exact merged full generation/build, all eight source/actual unstripped binary scans exit0 and all five hosted native jobs SUCCESS in producer37327998201 attempt1.
+- [x] Parent actual Intel Mac11 native18/current paired Todo/API PKCE, SQL/negative authorization, outage/recovery, logout/restarts and final zero-owned inventory.
+- [x] Strict owner receipt before protected approval; signed provenance for13 assets, atomic public prerelease and exact tag/digest readback.
+- [x] Independent actual public13 download/API hashes/sizes, exact12 checksum rows and all7 staged-byte equality PASS.
+- [ ] Governance-only reconciliation PR fresh review/CI/landing and parent source-issue closure.
+- [ ] Separately owned final literal public lesson04 Mac proof and docs1704 publication. No whole-programme/GA conclusion.
+
 ## Issue #27 disabled Go environment metadata
 - [x] Fresh issue27 and clean typed branch from verified current develop8348dd8; active GOENV-META-1..4 intent/spec/plan before code.
 - [x] Parent reconciled fresh investigator/primary Go source and actual local Go before product edits; precise failed producer field remains inference without retained provenance.
