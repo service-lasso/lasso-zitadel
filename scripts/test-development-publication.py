@@ -16,7 +16,13 @@ required=('native-host-roots-chain','native-wrong-hostname','native-current-time
 count=0
 def run(script,args,expected):
     global count
-    result=subprocess.run([sys.executable,str(root/'scripts'/script),*map(str,args)],cwd=root,env=env,capture_output=True,text=True)
+    if script=='verify-development-assets.py':
+        # Synthetic proof fixtures exercise publisher boundaries through a unit
+        # API adapter only. Production CLI always executes the real inspector.
+        code="import importlib.util,pathlib,sys; sys.dont_write_bytecode=True; p=pathlib.Path(sys.argv[1]); sys.path.insert(0,str(p.parent)); s=importlib.util.spec_from_file_location('publisher',p); m=importlib.util.module_from_spec(s); s.loader.exec_module(m); m.main(sys.argv[2:],archive_validator=lambda p,t,h:m.supported.archive(p,t,h,inspector=lambda r,t:None))"
+        command=[sys.executable,'-c',code,str(root/'scripts'/script),*map(str,args)]
+    else:command=[sys.executable,str(root/'scripts'/script),*map(str,args)]
+    result=subprocess.run(command,cwd=root,env=env,capture_output=True,text=True)
     if (result.returncode==0)!=expected:
         raise SystemExit(script+' unexpected boundary result: '+result.stderr)
     count+=1

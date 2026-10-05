@@ -201,7 +201,10 @@ export async function packageSupported(platform, version, buildDirectory) {
   if (platform === "win32" && process.platform !== "win32") {
     run("python3", ["-c", "import pathlib,sys,zipfile; r=pathlib.Path(sys.argv[1]); z=zipfile.ZipFile(sys.argv[2],'w',zipfile.ZIP_DEFLATED); [z.write(p,p.name) for p in sorted(r.iterdir())]; z.close()", packageRoot, outputPath]);
   } else await compressPackage(packageRoot, outputPath, target.archiveType);
-  run(process.platform === "win32" ? "python" : "python3", [path.join(repoRoot, "scripts/verify-supported-defaults.py"), "archive", outputPath, platform]);
+  // Owned verification above authenticates every official compiler byte.
+  run(process.platform === "win32" ? "python" : "python3", [path.join(repoRoot, "scripts/verify-supported-defaults.py"), "archive", outputPath, platform], {
+    env: { ...process.env, GOROOT: path.join(buildDirectory, "go"), PATH: `${path.join(buildDirectory, "go/bin")}${path.delimiter}${process.env.PATH ?? ""}` },
+  });
   return outputPath;
 }
 

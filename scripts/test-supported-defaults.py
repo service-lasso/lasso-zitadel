@@ -13,7 +13,7 @@ with tempfile.TemporaryDirectory(prefix='zitadel18-boundary-') as directory:
         def check(mutate=None,expected=False):
             global count
             make_archive(archive,platform,head,root,mutate)
-            try:module.archive(archive,platform,head);passed=True
+            try:module.archive(archive,platform,head,inspector=lambda read,target:None);passed=True
             except (SystemExit,ValueError,KeyError):passed=False
             if passed!=expected:raise SystemExit('Unexpected default boundary result '+platform)
             count+=1

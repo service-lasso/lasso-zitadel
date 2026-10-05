@@ -1,5 +1,5 @@
 """Validate supported package proofs, both owned staging and final archives."""
-import hashlib,json,pathlib,subprocess,sys,tarfile,zipfile
+import hashlib,json,os,pathlib,subprocess,sys,tarfile,tempfile,zipfile
 sys.dont_write_bytecode=True
 from macos11_dependency_recipe import identity
 root=pathlib.Path(__file__).resolve().parent.parent
@@ -32,17 +32,44 @@ def validate(read,platform,head):
             raise SystemExit('Default exact security evidence disagreement')
     if target['source'].get('target')!=goos+'/amd64': raise SystemExit('Default source scan target disagreement')
     return doc
-def archive(path,platform,head):
+def inspect_binary(read,platform):
+    """Derive module custody and re-scan actual bytes; never trust embedded claims."""
+    env=dict(os.environ,GOENV='off',GOWORK='off',GOTOOLCHAIN='local',GOFLAGS='',GOOS='',GOARCH='',
+             GOPROXY='https://proxy.golang.org,direct',GOSUMDB='sum.golang.org',GOPRIVATE='',GONOPROXY='',GONOSUMDB='',
+             GOMAXPROCS='2',GOMEMLIMIT='3GiB')
+    for name in ('GOEXPERIMENT','GOCOMPILEDEBUG','GOTOOLDIR','CC','CXX','FC','AR','LD','CGO_CFLAGS','CGO_CPPFLAGS','CGO_CXXFLAGS','CGO_LDFLAGS'):
+        env.pop(name,None)
+    version=subprocess.check_output(['go','version'],env=env,text=True).strip()
+    if not version.startswith('go version go1.26.8 '): raise SystemExit('Independent official Go1.26.8 inspection required')
+    with tempfile.TemporaryDirectory(prefix='zitadel18-final-inspection-') as temporary:
+        directory=pathlib.Path(temporary);binary=directory/('zitadel.exe' if platform=='win32' else 'zitadel')
+        binary.write_bytes(read(binary.name))
+        actual=subprocess.check_output(['go','version','-m',str(binary)],env=env,text=True)
+        claimed=read('modules.txt').decode()
+        def normalized(value):
+            lines=value.splitlines()
+            return [lines[0].rsplit(': ',1)[-1],*lines[1:]] if lines else []
+        if normalized(actual)!=normalized(claimed): raise SystemExit('Actual binary module inventory differs from embedded proof')
+        tools=directory/'scanner';tools.mkdir();env['GOBIN']=str(tools)
+        subprocess.run(['go','install','golang.org/x/vuln/cmd/govulncheck@v1.7.0'],env=env,cwd=directory,check=True,timeout=600)
+        scanner=tools/('govulncheck.exe' if os.name=='nt' else 'govulncheck')
+        # Fresh trusted pinned scanner executes against the actual final bytes.
+        # Default TEXT mode findings/errors/timeouts remain nonzero failures.
+        subprocess.run([str(scanner),'-mode=binary',str(binary)],env=env,cwd=directory,check=True,timeout=900)
+def archive(path,platform,head,inspector=inspect_binary):
     if path.suffix=='.zip':
         with zipfile.ZipFile(path) as z:
             names=z.namelist()
             if len(set(names))!=len(names) or any('/' in n or '\\' in n or n in ('.','..') for n in names): raise SystemExit('Unsafe default archive')
             validate(z.read,platform,head)
+            inspector(z.read,platform)
     else:
         with tarfile.open(path) as t:
             members={m.name.removeprefix('./'):m for m in t.getmembers() if m.name not in ('.','./')}
             if len(members)!=len([m for m in t.getmembers() if m.name not in ('.','./')]) or any(not m.isfile() or '/' in n or '\\' in n or n in ('.','..') for n,m in members.items()): raise SystemExit('Unsafe default archive')
-            validate(lambda n:t.extractfile(members[n]).read(),platform,head)
+            read=lambda n:t.extractfile(members[n]).read()
+            validate(read,platform,head)
+            inspector(read,platform)
 if __name__=='__main__':
     mode,directory,platform=sys.argv[1:4];head=subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD'],text=True).strip()
     if mode=='archive': archive(pathlib.Path(directory),platform,head)

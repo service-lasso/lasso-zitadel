@@ -23,6 +23,14 @@ jobs:
         run: python3 -B scripts/test-macos11-security-runner.py
       - name: Reject affected or substituted supported default package proofs
         run: python3 scripts/test-supported-defaults.py
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
+        with:
+          go-version: 1.26.8
+          cache: false
+      - name: Independent default binary inspection and benign native build controls
+        run: |
+          python3 scripts/test-default-binary-inspection.py
+          python3 scripts/test-default-binary-inspection.py --real
       - name: Verify authenticated dependency overlay and source custody
         run: python3 -B scripts/test-macos11-dependency-recipe.py
       - name: Verify exact producer preflight preserves a fresh checkout
