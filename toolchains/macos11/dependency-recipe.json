@@ -1,0 +1,14 @@
+{
+  "upstreamSHA": "10b1af91d68700707d41e820545e478cf267511b",
+  "patchSHA256": "df39c2a3a19ecd7a6ed47ff66908ec262632ca92b614ea7e4c6f14b7978d3fcd",
+  "files": {
+    "go.mod": {
+      "before": "8a5f11d57a81a08e5a5c50fb62d634c8c4133627cd124fd04fab548b5f558070",
+      "after": "8a70c544dc39c23ccf5f8f557bc8a78531573a2aa980d21f2b30dd9212746ab6"
+    },
+    "go.sum": {
+      "before": "bbc5aa5560d03b539e97036fd2ad3ce123a779e794c7b55b346ac69b44dabae0",
+      "after": "96d8dd3e1bc9348108cfca7ba1ece5b9d0bcd6a7646e001c55f3bd7dad57f0ff"
+    }
+  }
+}

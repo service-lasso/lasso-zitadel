@@ -45,3 +45,9 @@ This is scoped remediation tracking, not a claim of repository bootstrap complet
 - [x] Reproduce passing preflight tests creating untracked helper bytecode and producer guard exit 1; evidence outside checkout.
 - [ ] Implement AC-015-1..3, verify regression and freeze pushed PR for fresh parent review.
 - [ ] Parent-owned exact merged hosted/native/publication qualification remains separate.
+
+## Issue #17 source dependency remediation
+- [x] Preserve hosted source exit3 diagnosis and confirm primary advisories; read-only investigator confirms two-lockfile boundary.
+- [x] Fresh isolated typed branch from develop158c9ea; issue/spec/intent before implementation.
+- [ ] Authenticate dependency-only recipe and test tamper/legitimate controls; push PR for distinct parent review.
+- [ ] Parent exact merged hosted/security/native18/protected publication qualification; no release claim.

@@ -1,0 +1,3 @@
+# Recipe byte digests must be identical on Windows and Unix checkouts.
+toolchains/macos11/dependencies.patch text eol=lf
+toolchains/macos11/dependency-recipe.json text eol=lf

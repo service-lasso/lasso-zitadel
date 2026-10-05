@@ -87,6 +87,7 @@ jobs:
         run: |
           python3 scripts/test-development-publication.py
           python3 scripts/test-macos11-generated-inventory.py
+          python3 scripts/test-macos11-dependency-recipe.py
           python3 scripts/test-macos11-security-runner.py
       - name: One full locked upstream asset and private maintained-Go build
         run: |
