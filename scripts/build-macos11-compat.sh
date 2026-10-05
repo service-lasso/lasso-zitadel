@@ -66,7 +66,7 @@ mkdir "$OWNED/artifacts"
 cd "$OWNED/zitadel-$SOURCE"
 go mod verify > "$OWNED/module-verify.log" 2>&1
 CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 GOAMD64=v1 go build -mod=readonly -x -work -trimpath \
-  -ldflags="-linkmode=internal -s -w -X github.com/zitadel/zitadel/cmd/build.commit=$SOURCE -X github.com/zitadel/zitadel/cmd/build.date=$BUILD_DATE -X github.com/zitadel/zitadel/cmd/build.version=v4.14.0" \
+  -ldflags="-linkmode=internal -X github.com/zitadel/zitadel/cmd/build.commit=$SOURCE -X github.com/zitadel/zitadel/cmd/build.date=$BUILD_DATE -X github.com/zitadel/zitadel/cmd/build.version=v4.14.0" \
   -o "$OWNED/artifacts/zitadel" . 2> "$OWNED/zitadel-build.log"
 python3 "$ROOT/scripts/verify-macos11-inputs.py" "$ROOT" "$OWNED" linked
 python3 "$ROOT/scripts/record-macos11-build.py" "$ROOT" "$OWNED"

@@ -155,7 +155,11 @@ npm run release:verify
 
 Install official Go 1.26.8 on the native host before verifying a staged repaired
 archive. This verifies actual binary build information and runs the pinned
-vulnerability scanner, extracts the archive, verifies package metadata and
+scanner against retained Go function symbols. Production executables preserve
+their symbol tables; packaging rejects missing or stripped function symbols
+instead of accepting module-only scanner fallback. This also applies to the
+macOS 11 compatibility executable. The same mandatory full source and binary
+scan exits remain required. Verification extracts the archive, verifies package metadata and
 executes the native ZITADEL version/help commands. The full authenticated source
 producer and packaging run on a hosted Linux runner; its Linux compiler cannot
 run on Windows. Normal packaging fails without that completed source build.

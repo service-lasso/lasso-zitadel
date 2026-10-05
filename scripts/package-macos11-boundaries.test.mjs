@@ -28,7 +28,7 @@ try {
     dependencyRecipe,
     environment: { GOENV: "off", GOWORK: "off", GOTOOLCHAIN: "local", GOFLAGS: "", CGO_ENABLED: "0", GOAMD64: "v1" },
     binaryEnvironment: { GOOS: "darwin", GOARCH: "amd64", GOAMD64: "v1", CGO_ENABLED: "0" },
-    buildFlags: "-mod=readonly -x -work -trimpath", linkFlags: "-linkmode=internal -s -w" };
+    buildFlags: "-mod=readonly -x -work -trimpath", linkFlags: "-linkmode=internal" };
   async function reject(value, pattern) {
     await writeFile(path.join(directory, "artifacts/build-provenance.json"), JSON.stringify(value));
     await assert.rejects(packageMacos11(directory, `2026.10.5-${sha.slice(0, 7)}`), pattern);
@@ -40,6 +40,8 @@ try {
   }
   const invalid = structuredClone(provenance); invalid.hashes["upstream.tar.gz"] = "invalid";
   await reject(invalid, /mandatory build provenance/);
+  const stripped = structuredClone(provenance); stripped.linkFlags = "-linkmode=internal -s -w";
+  await reject(stripped, /Compatibility build environment disagreement/);
   const missingRecipe = structuredClone(provenance); delete missingRecipe.dependencyRecipe;
   await reject(missingRecipe, /Dependency recipe provenance/);
   const alteredRecipe = structuredClone(provenance); alteredRecipe.dependencyRecipe.files['go.mod'].after = "b".repeat(64);

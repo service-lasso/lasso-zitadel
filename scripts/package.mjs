@@ -241,13 +241,14 @@ export async function packageMacos11(buildDirectory, releaseVersion) {
   if (Object.entries(expectedEnvironment).some(([key, value]) => provenance.environment?.[key] !== value) ||
       provenance.binaryEnvironment?.GOOS !== "darwin" || provenance.binaryEnvironment?.GOARCH !== "amd64" ||
       provenance.binaryEnvironment?.GOAMD64 !== "v1" || provenance.binaryEnvironment?.CGO_ENABLED !== "0" ||
-      provenance.buildFlags !== "-mod=readonly -x -work -trimpath" || provenance.linkFlags !== "-linkmode=internal -s -w") throw new Error("Compatibility build environment disagreement");
+      provenance.buildFlags !== "-mod=readonly -x -work -trimpath" || provenance.linkFlags !== "-linkmode=internal") throw new Error("Compatibility build environment disagreement");
   for (const [relative, expected] of Object.entries(provenance.hashes)) {
     if (path.isAbsolute(relative) || relative.split(/[\\/]/).includes("..")) throw new Error("Unsafe provenance path");
     if (createHash("sha256").update(await readFile(path.join(buildDirectory, relative))).digest("hex") !== expected) throw new Error(`Provenance input drift: ${relative}`);
   }
   // Standalone packaging authenticates archives, source, assets and the linked toolchain.
   run(process.platform === "win32" ? "python" : "python3", [path.join(repoRoot, "scripts/verify-macos11-inputs.py"), repoRoot, buildDirectory, "linked"]);
+  run(process.platform === "win32" ? "python" : "python3", [path.join(repoRoot, "scripts/verify-binary-symbols.py"), path.join(buildDirectory, "artifacts/zitadel")]);
   if (!/^\d{4}\.\d{1,2}\.\d{1,2}-[a-f0-9]{7}$/.test(releaseVersion ?? "") || !releaseVersion.endsWith(`-${provenance.wrapperSHA.slice(0, 7)}`)) {
     throw new Error("Compatibility release tag must bind exact wrapper SHA");
   }
@@ -281,7 +282,9 @@ export async function packageMacos11(buildDirectory, releaseVersion) {
   await writeFile(path.join(repoRoot, "dist/service-darwin-amd64-macos11.json"), `${JSON.stringify(manifest, null, 2)}\n`);
   await writeFile(path.join(packageRoot, "SERVICE-LASSO-PACKAGE.json"), `${JSON.stringify({ serviceId: "zitadel", upstream: { repo: "zitadel/zitadel", version: "v4.14.0", sourceCommit: provenance.upstreamSHA }, packagedBy: "service-lasso/lasso-zitadel", platform: "darwin", arch: "amd64", command: "./zitadel", profile: provenance.profile, binarySource: "custom-source-build", wrapperCommit: provenance.wrapperSHA, binarySHA256: hash }, null, 2)}\n`);
   await writeFile(path.join(packageRoot, "COMPATIBILITY.txt"), "Custom maintained Go 1.26.8 build of ZITADEL v4.14.0 with an authenticated dependency-only security patch for Intel macOS 11. This is a separately selected compatibility profile, not an official upstream Darwin binary or official Go macOS 11 support. See build-provenance.json and asset-provenance.json for the exact dependency recipe.\n");
-  return compressPackage(packageRoot, path.join(repoRoot, "dist", assetName), "tar.gz");
+  const outputPath = await compressPackage(packageRoot, path.join(repoRoot, "dist", assetName), "tar.gz");
+  run(process.platform === "win32" ? "python" : "python3", [path.join(repoRoot, "scripts/verify-binary-symbols.py"), "--archive", outputPath]);
+  return outputPath;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

@@ -3,8 +3,8 @@
 ## Issue #23 final binary security
 - [x] Fresh isolated typed branch from verified develop e584c4c; issue/spec/intent mapped before product edits.
 - [x] Preserve full Windows source exit0 and actual binary exit3 from producer37291332340; no package/native/publication acceptance.
-- [ ] Reconcile independent source/caller investigation with parent; approve exact complete source/dependency boundary before editing product files.
-- [ ] Authenticate narrow patch and inventories; verify focused security/legitimate controls and existing custody regressions.
+- [x] Reconcile independent source/caller investigation with parent; approved narrow symbol-preserving build/custody boundary, no dependency/source migration.
+- [x] Retain symbols in both builders and require actual function markers through final archives/native/publication/readback; targeted rejection/legitimate checks and existing custody suites pass.
 - [ ] Push every commit and maintain develop PR for fresh independent review.
 - [ ] Parent-owned exact hosted full source/binary, native/Mac11/paired SSO and protected publication evidence.
 

@@ -2,9 +2,10 @@
 import hashlib,json,os,pathlib,re,sys
 sys.dont_write_bytecode=True
 import importlib.util
+from binary_symbols import inspect_archive_symbols
 spec=importlib.util.spec_from_file_location('supported',pathlib.Path(__file__).parent/'verify-supported-defaults.py')
 supported=importlib.util.module_from_spec(spec);spec.loader.exec_module(supported)
-def main(arguments, archive_validator=supported.archive):
+def main(arguments, archive_validator=supported.archive, compatibility_inspector=inspect_archive_symbols):
     root=pathlib.Path(arguments[0]);mode=arguments[1]
     names={'lasso-zitadel-v4.14.0-win32.zip','lasso-zitadel-v4.14.0-linux.tar.gz',
            'lasso-zitadel-v4.14.0-darwin.tar.gz','service.json',
@@ -19,6 +20,8 @@ def main(arguments, archive_validator=supported.archive):
         raise SystemExit('Unexpected/missing/linked/empty publication asset inventory')
     for platform,name in [('win32','lasso-zitadel-v4.14.0-win32.zip'),('linux','lasso-zitadel-v4.14.0-linux.tar.gz'),('darwin','lasso-zitadel-v4.14.0-darwin.tar.gz')]:
         archive_validator(paths[name],platform,os.environ['GITHUB_SHA'])
+    compatibility_inspector(paths['lasso-zitadel-v4.14.0-darwin-amd64-macos11.tar.gz'],
+                            dict(os.environ,GOENV='off',GOWORK='off',GOTOOLCHAIN='local',GOFLAGS='',GOOS='',GOARCH=''))
     hashes={n:hashlib.sha256(p.read_bytes()).hexdigest() for n,p in paths.items()}
     if mode=='write':
         (root/'SHA256SUMS.txt').write_text(''.join(hashes[n]+'  '+n+'\n' for n in sorted(hashes)))
