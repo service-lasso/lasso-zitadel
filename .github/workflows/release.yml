@@ -13,6 +13,15 @@ permissions:
   contents: read
 
 jobs:
+  security-runner-contract:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Verify scanner process failure and deadline contracts
+        run: python3 -B scripts/test-macos11-security-runner.py
+
   build:
     strategy:
       fail-fast: false

@@ -29,3 +29,13 @@ Owner: /root/fix_zitadel10_generated_inventory. Prior PR #11 merged; its preserv
 - [x] AC-010-1/3/4: restrict Go outputs to seven pinned plugin filename contracts; preserve tracked console static/gitkeep; audit every rule against immutable recursive upstream tree.
 - [x] Six generated inventory groups including tracked handwritten modification/deletion with fresh recording, arbitrary Go addition and all legitimate plugin basenames; old code fails new regressions. Existing 45 publication and 16 packaging boundary checks pass.
 - [ ] Parent-owned fresh independent review, governed landing and single final hosted full generation; native/browser acceptance remains separate.
+
+# Bounded remediation: issue #13
+
+- [x] Preserve repeated failure evidence and distinguish runner shutdown from unproven OOM.
+- [x] Bind authorized source unit to SPEC-013 AC-013-1..5 and SPEC-010.
+- [x] Implement isolated scanner budgets and streamed nonsecret diagnostics without narrowing gates.
+- [ ] Verify behavior, existing regressions and fresh independent review of pushed PR.
+- [ ] Parent: merge exact reviewed source, then qualify exact candidate on hosted/native/protected publication boundaries.
+
+This is scoped remediation tracking, not a claim of repository bootstrap completion.

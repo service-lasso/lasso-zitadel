@@ -7,3 +7,5 @@ Active requirements: ../specs/SPEC-010-macos11-compatibility.md
 Governance execution rules are the Service Lasso Core .governance/rules/gov-01 through gov-14 plus gov-09-release-authority, supplied and read for this bounded delegated work.
 
 Issue #10 generated inventory follow-up: use a single bounded output mapping for recording and verification, derived from the immutable upstream generator contracts; preserve authenticated source and compiler boundaries. Failed run 37267875269 is diagnosis evidence, not compatibility acceptance.
+
+Issue #13 / active [SPEC-013](../specs/SPEC-013-security-runner-budget.md) AC-013-1..5: budget only isolated scanner processes and stream nonsecret resource evidence after repeated hosted runner interruption. Keep full text-mode source/binary coverage and all existing authentication/native/publication gates. Runner shutdown is directly observed; OOM and successful remediation are unproven until parent-owned exact-candidate hosted verification.
