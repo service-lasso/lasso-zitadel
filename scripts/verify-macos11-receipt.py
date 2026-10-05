@@ -32,7 +32,7 @@ for comment in reversed(comments):
     if not body.startswith('ZITADEL10_NATIVE_RECEIPT\n'): continue
     try: receipt=json.loads(body.split('\n',1)[1])
     except ValueError: continue
-    if receipt.get('schema')!=1 or receipt.get('candidateSHA')!=candidate or str(receipt.get('workflowRunID'))!=run_id: continue
+    if type(receipt.get('schema')) is not int or receipt['schema']!=1 or receipt.get('candidateSHA')!=candidate or str(receipt.get('workflowRunID'))!=run_id: continue
     host=receipt.get('host',{})
     if host.get('architecture')!='x86_64' or not re.fullmatch(r'11\.\d+\.\d+',host.get('version','')): continue
     if receipt.get('artifactSHA256')!=hashes or receipt.get('binarySHA256')!=build['hashes']['artifacts/zitadel']: continue

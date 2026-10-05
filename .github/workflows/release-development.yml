@@ -83,6 +83,8 @@ jobs:
       NX_PARALLEL: 2
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Refuse forged receipts and publication inventory drift
+        run: python3 scripts/test-development-publication.py
       - name: One full locked upstream asset and private maintained-Go build
         run: |
           set -euo pipefail
