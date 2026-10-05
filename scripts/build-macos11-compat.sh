@@ -5,6 +5,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OWNED="${1:?completed private full-asset build directory}"
 test -z "$(git -C "$ROOT" status --porcelain --untracked-files=all)"
 export WRAPPER_SHA="$(git -C "$ROOT" rev-parse HEAD)"
+python3 "$ROOT/scripts/verify-macos11-inputs.py" "$ROOT" "$OWNED" pristine
 python3 - "$ROOT" "$OWNED" <<'PY'
 import hashlib,json,pathlib,re,sys
 root,owned=map(pathlib.Path,sys.argv[1:])
@@ -45,19 +46,28 @@ for name,hashes in json.load(open(owned/'recipe/source-hashes.json')).items():
     if hashlib.sha256((owned/'go'/name).read_bytes()).hexdigest()!=hashes['after']:
         raise SystemExit('Toolchain patch mismatch: '+name)
 PY
+python3 "$ROOT/scripts/verify-macos11-inputs.py" "$ROOT" "$OWNED" patched
 unset GOEXPERIMENT GOCOMPILEDEBUG GOTOOLDIR CC CXX FC AR LD CGO_CFLAGS CGO_CPPFLAGS CGO_CXXFLAGS CGO_LDFLAGS
 export GOENV=off GOWORK=off GOTOOLCHAIN=local GOFLAGS= CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOAMD64=v1
 export GOPROXY=https://proxy.golang.org,direct GOSUMDB=sum.golang.org GOPRIVATE= GONOPROXY= GONOSUMDB=
 export GOROOT="$OWNED/go" GOCACHE="$OWNED/cache" GOMODCACHE="$OWNED/modcache" PATH="$OWNED/go/bin:/usr/local/bin:/usr/bin:/bin"
 go build -x -work -trimpath -o "$GOROOT/pkg/tool/linux_amd64/link.owned" cmd/link 2> "$OWNED/linker-build.log"
 mv "$GOROOT/pkg/tool/linux_amd64/link.owned" "$GOROOT/pkg/tool/linux_amd64/link"
+python3 - "$OWNED" <<'PY'
+import hashlib,json,pathlib,sys
+owned=pathlib.Path(sys.argv[1])
+(owned/'linker-inventory.json').write_text(json.dumps({'sha256':hashlib.sha256((owned/'go/pkg/tool/linux_amd64/link').read_bytes()).hexdigest()}))
+PY
+python3 "$ROOT/scripts/verify-macos11-inputs.py" "$ROOT" "$OWNED" linked
 SOURCE=10b1af91d68700707d41e820545e478cf267511b
 export BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 mkdir "$OWNED/artifacts"
 cd "$OWNED/zitadel-$SOURCE"
-CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 GOAMD64=v1 go build -x -work -trimpath \
+go mod verify > "$OWNED/module-verify.log" 2>&1
+CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 GOAMD64=v1 go build -mod=readonly -x -work -trimpath \
   -ldflags="-linkmode=internal -s -w -X github.com/zitadel/zitadel/cmd/build.commit=$SOURCE -X github.com/zitadel/zitadel/cmd/build.date=$BUILD_DATE -X github.com/zitadel/zitadel/cmd/build.version=v4.14.0" \
   -o "$OWNED/artifacts/zitadel" . 2> "$OWNED/zitadel-build.log"
+python3 "$ROOT/scripts/verify-macos11-inputs.py" "$ROOT" "$OWNED" linked
 python3 "$ROOT/scripts/record-macos11-build.py" "$ROOT" "$OWNED"
 test "$(git -C "$ROOT" rev-parse HEAD)" = "$WRAPPER_SHA"
 test -z "$(git -C "$ROOT" status --porcelain --untracked-files=all)"

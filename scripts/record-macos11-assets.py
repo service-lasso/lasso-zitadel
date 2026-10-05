@@ -27,4 +27,11 @@ document = {'wrapperSHA': os.environ['WRAPPER_SHA'], 'upstreamSHA': source_sha,
             'tools': {p.name:digest(p) for p in sorted(tools.iterdir()) if p.is_file()},
             'generatedAssets': {str(p.relative_to(source)): digest(p) for p in files},
             'logs': {p:digest(owned / p) for p in ('pnpm-install.log','generate.log','build-console.log')}}
+excluded={'node_modules','.nx','.angular','.artifacts','.git'}
+document['effectiveSourceHashes']={str(p.relative_to(source)):digest(p) for p in sorted(source.rglob('*'))
+                                   if p.is_file() and not excluded.intersection(p.relative_to(source).parts)}
+document['buildTools']={str(p.relative_to(owned)):digest(p) for p in [owned/'node-v22.23.3-linux-x64/bin/node',
+    owned/'pnpm-runtime/node_modules/pnpm/bin/pnpm.cjs']+[p for p in (owned/'os-build-tools').rglob('*') if p.is_file()]}
+document['generatorBuildInformation']={p.name:subprocess.run(['go','version','-m',str(p)],text=True,capture_output=True).stdout
+                                     for p in sorted(tools.iterdir()) if p.is_file()}
 (owned / 'asset-provenance.json').write_text(json.dumps(document,indent=2)+'\n')
