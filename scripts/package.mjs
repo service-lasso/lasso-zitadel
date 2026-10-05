@@ -107,7 +107,10 @@ export async function packageZitadel(platform = targetPlatform, version = zitade
     if (platform !== "darwin" || version !== "v4.14.0") throw new Error("Compatibility profile requires Darwin v4.14.0");
     return packageMacos11(process.env.ZITADEL_COMPAT_BUILD, process.env.SERVICE_LASSO_RELEASE_VERSION);
   }
-  if (process.env.ZITADEL_PACKAGE_PROFILE && process.env.ZITADEL_PACKAGE_PROFILE !== "official") {
+  if (!process.env.ZITADEL_PACKAGE_PROFILE || process.env.ZITADEL_PACKAGE_PROFILE === "supported") {
+    return packageSupported(platform, version, process.env.ZITADEL_SUPPORTED_BUILD);
+  }
+  if (process.env.ZITADEL_PACKAGE_PROFILE !== "official-baseline") {
     throw new Error("Unknown ZITADEL_PACKAGE_PROFILE");
   }
   const target = targets[platform];
@@ -175,6 +178,33 @@ export async function packageZitadel(platform = targetPlatform, version = zitade
 
   await compressPackage(packageRoot, outputPath, target.archiveType);
   console.log(`[lasso-zitadel] packaged ${outputPath}`);
+  return outputPath;
+}
+
+export async function packageSupported(platform, version, buildDirectory) {
+  const target = targets[platform];
+  if (!target || version !== "v4.14.0") throw new Error("Supported defaults require an existing v4.14.0 amd64 target");
+  if (!buildDirectory || !path.isAbsolute(buildDirectory)) throw new Error("Authenticated completed supported source build required");
+  run(process.platform === "win32" ? "python" : "python3", [path.join(repoRoot, "scripts/verify-supported-defaults.py"), "owned", buildDirectory, platform]);
+  const provenance = JSON.parse(await readFile(path.join(buildDirectory, "defaults/provenance.json"), "utf8"));
+  const packageRoot = path.join(repoRoot, "output/package/v4.14.0", platform, "supported-payload");
+  if (existsSync(packageRoot)) throw new Error("Supported staging exists; use fresh owned output");
+  await mkdir(packageRoot, { recursive: true });
+  for (const file of [target.binary, "modules.txt"]) await cp(path.join(buildDirectory, "defaults", platform, file), path.join(packageRoot, file));
+  for (const [source, dest] of [["defaults/provenance.json", "default-build-provenance.json"], ["asset-provenance.json", "asset-provenance.json"], ["api-generator-inventory.json", "api-generator-inventory.json"], [`security-default-source-${platform}.log`, "source-vulnerabilities.txt"], [`security-default-binary-${platform}.log`, "binary-vulnerabilities.txt"]]) await cp(path.join(buildDirectory, source), path.join(packageRoot, dest));
+  for (const file of ["README.md", "LICENSE"]) await cp(path.join(buildDirectory, `zitadel-${provenance.upstreamSHA}`, file), path.join(packageRoot, file));
+  await cp(path.join(buildDirectory, "go/LICENSE"), path.join(packageRoot, "GO-LICENSE"));
+  if (platform !== "win32") await chmod(path.join(packageRoot, target.binary), 0o755);
+  await writeFile(path.join(packageRoot, "SERVICE-LASSO-PACKAGE.json"), `${JSON.stringify({ serviceId: "zitadel", upstream: { repo: "zitadel/zitadel", version, sourceCommit: provenance.upstreamSHA }, packagedBy: "service-lasso/lasso-zitadel", platform, arch: "amd64", command: target.command, profile: provenance.profile, binarySource: "authenticated-source-build", wrapperCommit: provenance.wrapperSHA, binarySHA256: provenance.targets[platform].binarySHA256 }, null, 2)}\n`);
+  const outputPath = path.join(repoRoot, "dist", versionedAssetName(version, platform, target.archiveType));
+  await mkdir(path.dirname(outputPath), { recursive: true });
+  if (platform === "win32" && process.platform !== "win32") {
+    run("python3", ["-c", "import pathlib,sys,zipfile; r=pathlib.Path(sys.argv[1]); z=zipfile.ZipFile(sys.argv[2],'w',zipfile.ZIP_DEFLATED); [z.write(p,p.name) for p in sorted(r.iterdir())]; z.close()", packageRoot, outputPath]);
+  } else await compressPackage(packageRoot, outputPath, target.archiveType);
+  // Owned verification above authenticates every official compiler byte.
+  run(process.platform === "win32" ? "python" : "python3", [path.join(repoRoot, "scripts/verify-supported-defaults.py"), "archive", outputPath, platform], {
+    env: { ...process.env, GOROOT: path.join(buildDirectory, "go"), PATH: `${path.join(buildDirectory, "go/bin")}${path.delimiter}${process.env.PATH ?? ""}` },
+  });
   return outputPath;
 }
 

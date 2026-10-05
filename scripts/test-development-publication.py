@@ -1,5 +1,7 @@
 """AC-010-7 boundary tests; fixture receipts are never native acceptance."""
 import copy,hashlib,json,os,pathlib,subprocess,sys,tempfile
+sys.dont_write_bytecode=True
+from supported_default_fixtures import make_archive
 root=pathlib.Path(__file__).resolve().parent.parent
 sha='a'*40;tag='2026.10.5-'+sha[:7]
 pins=json.loads((root/'toolchains/macos11/input-pins.json').read_text())
@@ -14,7 +16,13 @@ required=('native-host-roots-chain','native-wrong-hostname','native-current-time
 count=0
 def run(script,args,expected):
     global count
-    result=subprocess.run([sys.executable,str(root/'scripts'/script),*map(str,args)],cwd=root,env=env,capture_output=True,text=True)
+    if script=='verify-development-assets.py':
+        # Synthetic proof fixtures exercise publisher boundaries through a unit
+        # API adapter only. Production CLI always executes the real inspector.
+        code="import importlib.util,pathlib,sys; sys.dont_write_bytecode=True; p=pathlib.Path(sys.argv[1]); sys.path.insert(0,str(p.parent)); s=importlib.util.spec_from_file_location('publisher',p); m=importlib.util.module_from_spec(s); s.loader.exec_module(m); m.main(sys.argv[2:],archive_validator=lambda p,t,h:m.supported.archive(p,t,h,inspector=lambda r,t:None))"
+        command=[sys.executable,'-c',code,str(root/'scripts'/script),*map(str,args)]
+    else:command=[sys.executable,str(root/'scripts'/script),*map(str,args)]
+    result=subprocess.run(command,cwd=root,env=env,capture_output=True,text=True)
     if (result.returncode==0)!=expected:
         raise SystemExit(script+' unexpected boundary result: '+result.stderr)
     count+=1
@@ -48,6 +56,8 @@ with tempfile.TemporaryDirectory(prefix='zitadel10-publication-boundaries-') as 
     (assets/receipt_names[0]).write_bytes(original)
     for name in ('lasso-zitadel-v4.14.0-win32.zip','lasso-zitadel-v4.14.0-linux.tar.gz','lasso-zitadel-v4.14.0-darwin.tar.gz','service.json','macos11-native-receipt.json'):
         (assets/name).write_text('Boundary asset\n')
+    for platform,suffix in [('win32','zip'),('linux','tar.gz'),('darwin','tar.gz')]:
+        make_archive(assets/f'lasso-zitadel-v4.14.0-{platform}.{suffix}',platform,sha,root)
     run('verify-development-assets.py',[assets,'write'],True)
     run('verify-development-assets.py',[assets,'verify'],True)
     (assets/'unexpected-file').write_text('extra');run('verify-development-assets.py',[assets,'verify'],False);(assets/'unexpected-file').unlink()

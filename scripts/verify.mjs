@@ -93,7 +93,10 @@ if (
   throw new Error(`Unexpected ZITADEL healthchecks[] contract: ${JSON.stringify(healthchecks)}`);
 }
 
-const artifact = await packageZitadel(platform, version);
+const artifact = process.env.ZITADEL_VERIFY_ARCHIVE ?? await packageZitadel(platform, version);
+if (process.env.ZITADEL_VERIFY_ARCHIVE) {
+  await run(process.platform === "win32" ? "python" : "python3", [path.join(repoRoot, "scripts/verify-supported-defaults.py"), "archive", artifact, platform]);
+}
 const verifyRoot = path.join(repoRoot, "output", "verify", version, platform);
 const extractRoot = path.join(verifyRoot, "extract");
 const binary = platform === "win32" ? "zitadel.exe" : "zitadel";
@@ -117,4 +120,5 @@ if (
 }
 
 const versionOutput = await runVersion(binaryPath);
+await run(binaryPath, ["--help"]);
 console.log(`[lasso-zitadel] verification passed for ${version} on ${platform}: ${versionOutput}`);

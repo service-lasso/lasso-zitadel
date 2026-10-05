@@ -3,9 +3,12 @@
 `lasso-zitadel` is the canonical Service Lasso service repo for packaging
 ZITADEL as a release-backed optional managed service.
 
-The repo does not fork ZITADEL. It downloads official `zitadel/zitadel` release
-archives, wraps them in Service Lasso-compatible platform archives, and
-publishes those archives through a manual, release-owner workflow dispatch from
+The repo builds authenticated ZITADEL v4.14.0 source with a bounded security
+dependency overlay and complete upstream generated assets. Supported amd64
+defaults use official maintained Go 1.26.8; the explicit Intel macOS 11 profile
+uses its separately reviewed compatibility compiler. Original upstream release
+archives remain baseline test inputs. The repo publishes qualified archives
+through a manual, release-owner workflow dispatch from
 the qualified `develop` revision, using the project version pattern:
 
 ```text
@@ -145,12 +148,20 @@ mapping the plan actions to ZITADEL management API calls.
 ## Local Verification
 
 ```powershell
-npm test
+$env:TARGET_PLATFORM = 'win32'
+$env:ZITADEL_VERIFY_ARCHIVE = 'C:\absolute\staged\lasso-zitadel-v4.14.0-win32.zip'
+npm run release:verify
 ```
 
-This runs OIDC bootstrap and browser-local topology contract tests, packages the
-current platform, extracts the archive, verifies package metadata, and runs the
-ZITADEL binary version command from the extracted payload. For the OIDC contract
+Install official Go 1.26.8 on the native host before verifying a staged repaired
+archive. This verifies actual binary build information and runs the pinned
+vulnerability scanner, extracts the archive, verifies package metadata and
+executes the native ZITADEL version/help commands. The full authenticated source
+producer and packaging run on a hosted Linux runner; its Linux compiler cannot
+run on Windows. Normal packaging fails without that completed source build.
+CI retains original upstream baseline tests with
+the explicit `official-baseline` profile; baseline archives cannot enter the
+protected final publication inventory. For the OIDC contract
 tests only, run:
 
 ```powershell

@@ -66,9 +66,10 @@ jobs:
         env:
           TARGET_PLATFORM: ${{ matrix.platform }}
           ZITADEL_VERSION: v4.14.0
+          ZITADEL_PACKAGE_PROFILE: official-baseline
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: zitadel-official-${{ matrix.platform }}
+          name: baseline-official-${{ matrix.platform }}
           path: ${{ matrix.artifact }}
           if-no-files-found: error
           retention-days: 90
@@ -76,7 +77,7 @@ jobs:
   compatibility:
     needs: authorize
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 300
     env:
       SERVICE_LASSO_RELEASE_VERSION: ${{ needs.authorize.outputs.version }}
       GOMAXPROCS: 2
@@ -89,10 +90,16 @@ jobs:
           python3 scripts/test-macos11-generated-inventory.py
           python3 scripts/test-macos11-dependency-recipe.py
           python3 scripts/test-macos11-security-runner.py
+          python3 scripts/test-supported-defaults.py
+          python3 scripts/test-default-binary-inspection.py
       - name: One full locked upstream asset and private maintained-Go build
         run: |
           set -euo pipefail
           bash scripts/generate-macos11-assets.sh "$RUNNER_TEMP/zitadel10"
+          python3 scripts/build-supported-defaults.py "$GITHUB_WORKSPACE" "$RUNNER_TEMP/zitadel10"
+          for platform in win32 linux darwin; do
+            TARGET_PLATFORM="$platform" ZITADEL_SUPPORTED_BUILD="$RUNNER_TEMP/zitadel10" "$RUNNER_TEMP/zitadel10/node-v22.23.3-linux-x64/bin/node" scripts/package.mjs
+          done
           bash scripts/build-macos11-compat.sh "$RUNNER_TEMP/zitadel10"
           bash scripts/prepare-macos11-probes.sh "$RUNNER_TEMP/zitadel10"
       - name: Scan exact generated source and compatibility binary
@@ -132,6 +139,8 @@ jobs:
           path: |
             ${{ runner.temp }}/zitadel10/*.log
             ${{ runner.temp }}/zitadel10/*vulnerabilities.txt
+            ${{ runner.temp }}/zitadel10/defaults/*/*.log
+            ${{ runner.temp }}/zitadel10/defaults/*/modules.txt
           if-no-files-found: warn
           retention-days: 90
 
@@ -195,8 +204,49 @@ jobs:
             ${{ runner.temp }}/native-matrix/native-fixture-matrix-r2.json
           if-no-files-found: warn
 
+  supported-native:
+    needs: compatibility
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win32
+            archive: lasso-zitadel-v4.14.0-win32.zip
+          - os: ubuntu-latest
+            platform: linux
+            archive: lasso-zitadel-v4.14.0-linux.tar.gz
+          - os: macos-15-intel
+            platform: darwin
+            archive: lasso-zitadel-v4.14.0-darwin.tar.gz
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
+        with:
+          go-version: 1.26.8
+          cache: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22.23.3
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: zitadel-compatibility
+          path: ${{ runner.temp }}/supported-defaults
+      - name: Verify actual repaired default archive and native version/help contracts
+        run: node scripts/verify.mjs
+        env:
+          TARGET_PLATFORM: ${{ matrix.platform }}
+          ZITADEL_VERIFY_ARCHIVE: ${{ runner.temp }}/supported-defaults/${{ matrix.archive }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: supported-native-${{ matrix.platform }}
+          path: output/verify
+          if-no-files-found: warn
+
   release:
-    needs: [authorize, original-platforms, compatibility, modern-native]
+    needs: [authorize, original-platforms, compatibility, modern-native, supported-native]
     if: github.ref == 'refs/heads/develop' && github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment: development-candidate
@@ -210,6 +260,10 @@ jobs:
       CANDIDATE_VERSION: ${{ needs.authorize.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00
+        with:
+          go-version: 1.26.8
+          cache: false
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           pattern: zitadel-*
@@ -252,7 +306,7 @@ jobs:
           test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq .object.type)" = commit
           gh release create "$tag" release-assets/* --verify-tag --target "$GITHUB_SHA" \
             --title "$tag" --prerelease --latest=false \
-            --notes "Development candidate from $GITHUB_SHA. Explicit custom maintained Go 1.26.8 Intel macOS 11 profile at unchanged ZITADEL v4.14.0 source. Original official platform assets preserved. Actual native/browser qualification is bound by macos11-native-receipt.json. Published tutorial reacquisition remains separate. No GA declaration." --generate-notes
+            --notes "Development candidate from $GITHUB_SHA. Authenticated dependency-repaired ZITADEL v4.14.0 defaults use official maintained Go 1.26.8; the explicit Intel macOS 11 profile uses the reviewed custom compiler. Original official assets are baseline evidence only. Actual native/browser qualification is bound by macos11-native-receipt.json. Published tutorial reacquisition remains separate. No GA declaration." --generate-notes
       - name: Read back exact tag target and every published asset digest
         env:
           GH_TOKEN: ${{ github.token }}
