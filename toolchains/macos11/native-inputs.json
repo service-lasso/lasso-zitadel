@@ -1,0 +1,8 @@
+{
+  "verify/macos11/compare.mjs": "f9a79df2c9ca07448fe0e2f8fb739bfdf333275591a934bdc5bb7a20b85b232a",
+  "verify/macos11/go-trust-probe.go": "c4d877d42ad113c554af9775bd8637da30c0622a246a9dffc6a89a0f1625b8f5",
+  "verify/macos11/native/apple-trust.c": "6c28471be4f0c2a2efa199c8bf5921458f5e20bdcbad2bf6b7b1cffb4a525096",
+  "verify/macos11/prepare-fixtures-r2.mjs": "b30aa6c1f1e37336c5129be9e83de82d5f8127096837110606e1cb968a7653d1",
+  "verify/macos11/prepare-native.mjs": "4ad85752711a020e719171e8e383f04b642217006deb4ed751f5689478725db6",
+  "scripts/check-compat-macho.py": "2372061152b9b2678a29804bda9a5c00155ea1926051a6c2b13cc6650e278ee4"
+}
