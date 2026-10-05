@@ -13,3 +13,5 @@ Issue #13 / active [SPEC-013](../specs/SPEC-013-security-runner-budget.md) AC-01
 Issue #15 / active [SPEC-015](../specs/SPEC-015-preflight-checkout-purity.md): default-Python producer preflight tests leave a fresh checkout pristine; preserve all producer, authentication, scanner and publisher gates.
 
 Issue #17 / active [SPEC-017](../specs/SPEC-017-source-dependency-remediation.md) AC-017-1..5: retain immutable v4.14.0 identity implementation and apply an authenticated dependency-only go.mod/go.sum overlay before full generation to remediate nine reachable vulnerabilities. All original and compatibility security/source/native/publication gates remain mandatory.
+
+Issue #21 / active [SPEC-021](../specs/SPEC-021-otel-logging-compatibility.md) AC-021-1..4: correct logging bridge API compatibility exposed by full producer37287250979 without downgrading fixed security dependencies or weakening custody/build/security gates.
