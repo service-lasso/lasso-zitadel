@@ -34,4 +34,6 @@ document['buildTools']={str(p.relative_to(owned)):digest(p) for p in [owned/'nod
     owned/'pnpm-runtime/node_modules/pnpm/bin/pnpm.cjs']+[p for p in (owned/'os-build-tools').rglob('*') if p.is_file()]}
 document['generatorBuildInformation']={p.name:subprocess.run(['go','version','-m',str(p)],text=True,capture_output=True).stdout
                                      for p in sorted(tools.iterdir()) if p.is_file()}
+document['apiGenerators']=json.loads((owned/'api-generator-inventory.json').read_text())
+document['apiGeneratorInventorySHA256']=digest(owned/'api-generator-inventory.json')
 (owned / 'asset-provenance.json').write_text(json.dumps(document,indent=2)+'\n')

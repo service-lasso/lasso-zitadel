@@ -221,6 +221,7 @@ export async function packageMacos11(buildDirectory, releaseVersion) {
   for (const [source, destination] of [["artifacts/build-provenance.json", "build-provenance.json"], ["asset-provenance.json", "asset-provenance.json"]]) {
     await cp(path.join(buildDirectory, source), path.join(packageRoot, destination));
   }
+  await cp(path.join(buildDirectory, "api-generator-inventory.json"), path.join(packageRoot, "api-generator-inventory.json"));
   const manifest = JSON.parse(await readFile(path.join(repoRoot, "service.json"), "utf8"));
   delete manifest.artifact.source.channel;
   manifest.artifact.source.tag = releaseVersion;

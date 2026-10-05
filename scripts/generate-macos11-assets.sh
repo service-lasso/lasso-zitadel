@@ -44,6 +44,7 @@ sha256sum pnpm-lock.yaml go.mod go.sum > "$OWNED/lockfiles.before"
 export NX_DAEMON=false NX_SKIP_NX_CACHE=true NX_NO_CLOUD=true
 pnpm install --frozen-lockfile --store-dir "$OWNED/pnpm-store" > "$OWNED/pnpm-install.log" 2>&1
 pnpm nx run @zitadel/api:generate --skip-nx-cache > "$OWNED/generate.log" 2>&1
+python3 "$ROOT/scripts/snapshot-macos11-generators.py" "$OWNED"
 pnpm nx run @zitadel/api:build-console --skip-nx-cache > "$OWNED/build-console.log" 2>&1
 sha256sum -c "$OWNED/lockfiles.before"
 python3 "$ROOT/scripts/record-macos11-assets.py" "$OWNED" "$SOURCE"

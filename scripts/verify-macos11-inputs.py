@@ -49,6 +49,7 @@ for relative in actual.keys()-original_paths:
         raise SystemExit('Unexpected non-generated source addition: '+relative)
 for relative,expected in assets['generatedAssets'].items(): equal(source/relative,expected)
 for relative,expected in assets['tools'].items(): equal(source/'.artifacts/bin/linux/amd64'/relative,expected)
+equal(owned/'api-generator-inventory.json',assets['apiGeneratorInventorySHA256'])
 patches={}
 if stage!='pristine':
     equal(owned/'go.src.tar.gz','4e39b98e42f946fa05ac8bc5b71877df97dbdb7cbb1a777b541667ad7117fd2e')
