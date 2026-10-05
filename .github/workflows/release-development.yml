@@ -1,0 +1,266 @@
+name: Publish development ZITADEL compatibility candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        description: Exact 40-character develop SHA authorized for qualification and publication
+        required: true
+        type: string
+
+concurrency:
+  group: zitadel-development-publication-${{ inputs.candidate_sha }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  authorize:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.bind.outputs.version }}
+    steps:
+      - name: Bind exact protected develop candidate and named owner environment
+        id: bind
+        env:
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          [[ "$CANDIDATE_SHA" =~ ^[a-f0-9]{40}$ ]]
+          test "$GITHUB_REF" = refs/heads/develop
+          test "$CANDIDATE_SHA" = "$GITHUB_SHA"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/develop" --jq .object.sha)" = "$GITHUB_SHA"
+          gh api "repos/$GITHUB_REPOSITORY/environments/development-candidate" > environment.json
+          python3 -c 'import json,sys; e=json.load(open("environment.json")); rules=[r for r in e.get("protection_rules",[]) if r.get("type")=="required_reviewers"]; reviewers=rules[0].get("reviewers",[]) if len(rules)==1 else []; ok=e.get("name")=="development-candidate" and len(reviewers)==1 and reviewers[0].get("type")=="User" and reviewers[0].get("reviewer",{}).get("id")==170312; sys.exit(0 if ok else "Protected environment must require only owner User 170312")'
+          echo "version=$(date -u +%Y.%-m.%-d)-${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+
+  original-platforms:
+    needs: authorize
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win32
+            artifact: dist/lasso-zitadel-v4.14.0-win32.zip
+          - os: ubuntu-latest
+            platform: linux
+            artifact: dist/lasso-zitadel-v4.14.0-linux.tar.gz
+          - os: macos-15-intel
+            platform: darwin
+            artifact: dist/lasso-zitadel-v4.14.0-darwin.tar.gz
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22.23.3
+      - name: Preserve all original package and startup contract gates
+        run: npm test
+        env:
+          TARGET_PLATFORM: ${{ matrix.platform }}
+          ZITADEL_VERSION: v4.14.0
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: zitadel-official-${{ matrix.platform }}
+          path: ${{ matrix.artifact }}
+          if-no-files-found: error
+          retention-days: 90
+
+  compatibility:
+    needs: authorize
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      SERVICE_LASSO_RELEASE_VERSION: ${{ needs.authorize.outputs.version }}
+      GOMAXPROCS: 2
+      NX_PARALLEL: 2
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: One full locked upstream asset and private maintained-Go build
+        run: |
+          set -euo pipefail
+          bash scripts/generate-macos11-assets.sh "$RUNNER_TEMP/zitadel10"
+          bash scripts/build-macos11-compat.sh "$RUNNER_TEMP/zitadel10"
+          bash scripts/prepare-macos11-probes.sh "$RUNNER_TEMP/zitadel10"
+      - name: Scan exact generated source and compatibility binary
+        run: |
+          set -euo pipefail
+          owned="$RUNNER_TEMP/zitadel10"
+          export GOENV=off GOWORK=off GOTOOLCHAIN=local GOFLAGS= GOOS=linux GOARCH=amd64 GOAMD64=v1 CGO_ENABLED=0
+          export GOROOT="$owned/go" GOCACHE="$owned/cache" GOMODCACHE="$owned/modcache" PATH="$owned/go/bin:/usr/bin:/bin"
+          mkdir "$owned/security-tools"
+          GOBIN="$owned/security-tools" go install golang.org/x/vuln/cmd/govulncheck@v1.7.0
+          cd "$owned/zitadel-10b1af91d68700707d41e820545e478cf267511b"
+          # Text mode has mandatory nonzero exit on detected callable vulnerabilities.
+          GOOS=darwin GOARCH=amd64 "$owned/security-tools/govulncheck" ./... > "$owned/source-vulnerabilities.txt"
+          "$owned/security-tools/govulncheck" -mode=binary "$owned/artifacts/zitadel" > "$owned/binary-vulnerabilities.txt"
+          cd "$GITHUB_WORKSPACE"
+          python3 scripts/verify-macos11-inputs.py "$GITHUB_WORKSPACE" "$owned" linked
+          python3 scripts/record-macos11-security.py "$owned"
+      - name: Package explicitly selected compatibility profile
+        env:
+          ZITADEL_PACKAGE_PROFILE: macos11
+          TARGET_PLATFORM: darwin
+        run: |
+          set -euo pipefail
+          owned="$RUNNER_TEMP/zitadel10"
+          ZITADEL_COMPAT_BUILD="$owned" "$owned/node-v22.23.3-linux-x64/bin/node" scripts/package.mjs
+          cp "$owned/artifacts/build-provenance.json" dist/macos11-build-provenance.json
+          cp "$owned/asset-provenance.json" dist/macos11-asset-provenance.json
+          cp "$owned/api-generator-inventory.json" dist/macos11-api-generator-inventory.json
+          cp "$owned/native-probes/custom-amd64" dist/macos11-go-trust-probe-amd64
+          cp "$owned/security-scan.json" dist/macos11-security-scan.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: zitadel-compatibility
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 90
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: native-trust-probes
+          path: ${{ runner.temp }}/zitadel10/native-probes
+          if-no-files-found: error
+          retention-days: 90
+      - name: Retain nonsecret producer diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: compatibility-build-diagnostics
+          path: |
+            ${{ runner.temp }}/zitadel10/*.log
+            ${{ runner.temp }}/zitadel10/*vulnerabilities.txt
+          if-no-files-found: warn
+          retention-days: 90
+
+  modern-native:
+    needs: compatibility
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15-intel
+            arch: amd64
+            machine: x86_64
+          - os: macos-14
+            arch: arm64
+            machine: arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22.23.3
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: native-trust-probes
+          path: ${{ runner.temp }}/native-matrix
+      - name: Independent Apple and official/custom maintained-Go trust comparison
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$(uname -m)" = '${{ matrix.machine }}'
+          cd "$RUNNER_TEMP/native-matrix"
+          shasum -a 256 -c SHA256SUMS.txt
+          chmod +x official-* custom-*
+          clang apple-trust.c -framework Security -framework CoreFoundation -o apple-trust
+          if test '${{ matrix.arch }}' = arm64; then
+            codesign --verify --strict official-arm64
+            codesign --verify --strict custom-arm64
+          fi
+          node prepare-native.mjs
+          node prepare-fixtures-r2.mjs
+          node compare.mjs "$PWD/official-${{ matrix.arch }}" "$PWD/custom-${{ matrix.arch }}"
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        if: matrix.arch == 'amd64'
+        with:
+          name: zitadel-compatibility
+          path: ${{ runner.temp }}/zitadel-package
+      - name: Modern Intel compatibility ZITADEL version and help regression
+        if: matrix.arch == 'amd64'
+        run: |
+          set -euo pipefail
+          mkdir "$RUNNER_TEMP/zitadel-runtime"
+          tar -xzf "$RUNNER_TEMP/zitadel-package/lasso-zitadel-v4.14.0-darwin-amd64-macos11.tar.gz" -C "$RUNNER_TEMP/zitadel-runtime"
+          "$RUNNER_TEMP/zitadel-runtime/zitadel" --version | grep -F v4.14.0
+          "$RUNNER_TEMP/zitadel-runtime/zitadel" --help
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: native-trust-${{ matrix.arch }}
+          path: |
+            ${{ runner.temp }}/native-matrix/comparison.json
+            ${{ runner.temp }}/native-matrix/native-matrix.json
+            ${{ runner.temp }}/native-matrix/native-fixture-matrix-r2.json
+          if-no-files-found: warn
+
+  release:
+    needs: [authorize, original-platforms, compatibility, modern-native]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: development-candidate
+    permissions:
+      contents: write
+      issues: read
+      actions: read
+      attestations: write
+      id-token: write
+    env:
+      CANDIDATE_VERSION: ${{ needs.authorize.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          pattern: zitadel-*
+          path: release-assets
+          merge-multiple: true
+      - name: Exact Big Sur receipt and complete candidate inventory before tag reservation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/develop" --jq .object.sha)" = "$GITHUB_SHA"
+          cp service.json release-assets/service.json
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/issues/10/comments?per_page=100" > native-comments.json
+          python3 scripts/verify-macos11-receipt.py native-comments.json release-assets release-assets/macos11-native-receipt.json
+          python3 scripts/verify-development-assets.py release-assets write
+      - uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a
+        with:
+          subject-path: release-assets/*
+      - name: Verify signed provenance of every exact asset before publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 scripts/verify-development-assets.py release-assets verify
+          for file in release-assets/*; do
+            gh attestation verify "$file" --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release-development.yml" \
+              --source-digest "$GITHUB_SHA" --source-ref "$GITHUB_REF" >/dev/null
+          done
+      - name: Atomically reserve new tag and publish explicit-target prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="$CANDIDATE_VERSION"
+          status=$(curl -sS -o existing-tag.json -w '%{http_code}' -H "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/$GITHUB_REPOSITORY/git/ref/tags/$tag")
+          test "$status" = 404
+          gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$tag" -f "sha=$GITHUB_SHA"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq .object.sha)" = "$GITHUB_SHA"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq .object.type)" = commit
+          gh release create "$tag" release-assets/* --verify-tag --target "$GITHUB_SHA" \
+            --title "$tag" --prerelease --latest=false \
+            --notes "Development candidate from $GITHUB_SHA. Explicit custom maintained Go 1.26.8 Intel macOS 11 profile at unchanged ZITADEL v4.14.0 source. Original official platform assets preserved. Actual native/browser qualification is bound by macos11-native-receipt.json. Published tutorial reacquisition remains separate. No GA declaration." --generate-notes
+      - name: Read back exact tag target and every published asset digest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$CANDIDATE_VERSION" --jq .object.sha)" = "$GITHUB_SHA"
+          test "$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$CANDIDATE_VERSION" --jq .object.type)" = commit
+          gh release view "$CANDIDATE_VERSION" --json tagName,name,targetCommitish,isDraft,isPrerelease,assets > release-readback.json
+          python3 scripts/verify-development-assets.py release-assets readback release-readback.json
