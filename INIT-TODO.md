@@ -75,3 +75,11 @@ This is scoped remediation tracking, not a claim of repository bootstrap complet
 - [x] Resolve minimal adapter graph and regenerate authenticated original-upstream two-lockfile patch.
 - [x] Verify targeted contracts/custody; push PR and freeze for fresh parent review (host checkout-purity limitation recorded).
 - [ ] Parent-owned exact hosted full build/security/native qualification; failed37287250979 preserved.
+
+## Issue #25 gRPC binary security
+- [x] Fresh issue25 and isolated typed branch from verified develop4e58034; active GRPC-SEC-1..4 intent/spec before code.
+- [x] Parent reconciled fresh independent source/compatibility investigation; narrow grpc1.83.2 plus required MVS boundary authorized.
+- [x] Authenticate upstream archive, reproduce two-lockfile overlay and recipe hashes; readonly comparison proves exactly six approved selected graph changes and no unrelated changes (GRPC-SEC-2).
+- [x] Unchanged upstream malformed authority/alternate header rejection and legitimate authority/unary/shutdown controls pass under local Go1.26.0; all focused custody regressions pass with managed retained evidence (GRPC-SEC-3).
+- [ ] Push every commit, develop PR and parent-owned fresh review.
+- [ ] Parent exact hosted full scans/build/native18/paired SSO/protected publication evidence (GRPC-SEC-4).
