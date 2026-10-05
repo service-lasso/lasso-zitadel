@@ -1,5 +1,9 @@
 # Issue 10 continuity
 
+## Current exact-candidate qualification (2026-10-06)
+
+[Qualification ledger](QUALIFICATION-2026.10.5-d7e04eb.md) records integrated source d7e04ebd9489ddc8c6798e408cd8ce7992711146, producer37327998201 attempt1 SUCCESS, all eight complete source/actual binary scans exit0, five hosted native jobs SUCCESS, actual Intel Mac11 native18/paired SSO/SQL/lifecycle acceptance, protected owner receipt and public13-byte custody PASS. Historical pending/failure statements below remain time-scoped; they are superseded only for this candidate. Final literal public lesson04/docs1704 remain active; no programme/GA claim. Parent owns review/CI/landing and source-issue closure.
+
 ## Issue #27 disabled Go environment metadata (2026-10-06)
 
 Fresh author /root/fix_zitadel27_goenv_metadata; D:/projects/service-lasso/zitadel27-goenv-metadata, fix/27-goenv-metadata from verified develop8348dd806b8784849a65b814fbf4ceaeeacaa3e2. GOENV-META-1..4 active before product edits; parent reconciled fresh investigator and primary Go1.26.8 cfg.EnvFile/envcmd.MkEnv with actual local1.26.0 control. Producer37302073453 passed all four full source/executable scan pairs before packaging failed; exact field remains inferred because failed build provenance was not retained.

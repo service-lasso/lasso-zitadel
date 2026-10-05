@@ -1,5 +1,9 @@
 # ZITADEL wrapper intent
 
+## Current exact-candidate qualification (2026-10-06)
+
+[Qualification ledger](QUALIFICATION-2026.10.5-d7e04eb.md) records integrated source d7e04ebd9489ddc8c6798e408cd8ce7992711146, producer37327998201 attempt1 SUCCESS, all eight complete source/actual binary scans exit0, five hosted native jobs SUCCESS, actual Intel Mac11 native18/paired SSO/SQL/lifecycle acceptance, protected owner receipt and public13-byte custody PASS. Historical pending/failure statements below remain time-scoped; they are superseded only for this candidate. Final literal public lesson04/docs1704 remain active; no programme/GA claim. Parent owns review/CI/landing and source-issue closure.
+
 Issue #27 / active [SPEC-027](../specs/SPEC-027-goenv-metadata.md) GOENV-META-1..4: reconcile real disabled Go environment metadata at compatibility packaging after producer37302073453 passed four full source/executable scan pairs. Raw GOENV=off controls and every other custody/security/native/publisher gate remain mandatory. Exact failed field is inference because producer build provenance was not retained; independent investigation and parent reconciliation precede product editing. Actual official Go1.26.8 preflight and narrow nonsecret diagnostics are in scope; focused controls do not qualify final product/native/publication.
 
 Issue #23 / active [SPEC-023](../specs/SPEC-023-final-binary-security.md) AC-023-1..6: preserve meaningful final-executable function symbols after producer37291332340 exposed pinned scanner fallback from stripped binaries to all module advisories. Independent investigation and parent reconciliation approved build/symbol custody only; source and dependency recipe remain unchanged. Require actual symbols across production, archive, native and publication/readback boundaries without weakening authentication, origin, custody, scanner or qualification gates. Existing source-zero evidence does not qualify final binary bytes.
