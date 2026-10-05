@@ -21,6 +21,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Verify scanner process failure and deadline contracts
         run: python3 -B scripts/test-macos11-security-runner.py
+      - name: Verify authenticated dependency overlay and source custody
+        run: python3 -B scripts/test-macos11-dependency-recipe.py
       - name: Verify exact producer preflight preserves a fresh checkout
         run: python3 scripts/test-producer-checkout-clean.py
 

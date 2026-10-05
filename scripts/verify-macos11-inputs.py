@@ -2,6 +2,7 @@
 import hashlib,json,os,pathlib,subprocess,sys,tarfile
 sys.dont_write_bytecode = True
 from macos11_generated_inventory import source_inventory, verify_generated, verify_source
+from macos11_dependency_recipe import identity
 
 root,owned=map(pathlib.Path,sys.argv[1:3])
 stage=sys.argv[3]
@@ -20,6 +21,8 @@ def equal(p,expected):
     if digest(p)!=expected: raise SystemExit('Input digest disagreement: '+str(p))
 if assets['wrapperSHA']!=head or assets['upstreamSHA']!=pins['upstreamSHA']:
     raise SystemExit('Exact asset generation wrapper/source mismatch')
+if assets.get('dependencyRecipe') != identity(root):
+    raise SystemExit('Asset dependency recipe disagreement')
 equal(owned/'upstream.tar.gz',pins['upstreamArchiveSHA256'])
 equal(owned/'go.tar.gz','d0f743b33e8d8945e6b1f432edd15785c70507121d6e2a723b21285eddf8b57b')
 source=owned/('zitadel-'+pins['upstreamSHA'])

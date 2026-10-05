@@ -1,6 +1,7 @@
 import json, os, pathlib, subprocess, sys
 sys.dont_write_bytecode = True
 from macos11_generated_inventory import source_inventory, generated_inventory, verify_source, digest
+from macos11_dependency_recipe import identity
 
 owned, source_sha = pathlib.Path(sys.argv[1]), sys.argv[2]
 source = owned / ('zitadel-' + source_sha)
@@ -28,6 +29,7 @@ document = {'wrapperSHA': os.environ['WRAPPER_SHA'], 'upstreamSHA': source_sha,
             'generatedAssets': generated_inventory(inventory),
             'logs': {p:digest(owned / p) for p in ('pnpm-install.log','generate.log','build-console.log')}}
 document['effectiveSourceHashes'] = inventory
+document['dependencyRecipe'] = identity()
 
 document['buildTools']={str(p.relative_to(owned)):digest(p) for p in [owned/'node-v22.23.3-linux-x64/bin/node',
     owned/'pnpm-runtime/node_modules/pnpm/bin/pnpm.cjs']+[p for p in (owned/'os-build-tools').rglob('*') if p.is_file()]}

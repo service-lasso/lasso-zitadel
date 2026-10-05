@@ -11,6 +11,9 @@ const directory = await mkdtemp(path.join(root, "output-boundary-fixture-"));
 const keys = ["upstream.tar.gz", "go.tar.gz", "go.src.tar.gz", "recipe/go1.26.8.patch", "recipe/source-hashes.json", "go/pkg/tool/linux_amd64/link", "linker-build.log", "zitadel-build.log", "asset-provenance.json", "api-generator-inventory.json", "module-verify.log", "artifacts/zitadel"];
 const sha = spawnSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).stdout.trim();
 const pins = JSON.parse(await readFile(path.join(root, "toolchains/macos11/input-pins.json")));
+const recipeBytes = await readFile(path.join(root, "toolchains/macos11/dependency-recipe.json"));
+const recipe = JSON.parse(recipeBytes);
+const dependencyRecipe = { recipeSHA256: createHash("sha256").update(recipeBytes).digest("hex"), patchSHA256: recipe.patchSHA256, files: recipe.files };
 let count = 0;
 try {
   for (const key of keys) {
@@ -18,9 +21,11 @@ try {
     await writeFile(path.join(directory, key), "deliberately unauthenticated input fixture");
   }
   const assets = { wrapperSHA: sha, upstreamSHA: pins.upstreamSHA, upstreamArchiveSHA256: pins.upstreamArchiveSHA256, effectiveSourceHashes: { "README.md": "a".repeat(64) } };
+  assets.dependencyRecipe = dependencyRecipe;
   await writeFile(path.join(directory, "asset-provenance.json"), JSON.stringify(assets));
   const hashes = Object.fromEntries(await Promise.all(keys.map(async key => [key, createHash("sha256").update(await readFile(path.join(directory, key))).digest("hex")])));
   const provenance = { wrapperSHA: sha, brokerRecipeSHA: pins.brokerRecipeSHA, effectiveSourceHashes: assets.effectiveSourceHashes, hashes,
+    dependencyRecipe,
     environment: { GOENV: "off", GOWORK: "off", GOTOOLCHAIN: "local", GOFLAGS: "", CGO_ENABLED: "0", GOAMD64: "v1" },
     binaryEnvironment: { GOOS: "darwin", GOARCH: "amd64", GOAMD64: "v1", CGO_ENABLED: "0" },
     buildFlags: "-mod=readonly -x -work -trimpath", linkFlags: "-linkmode=internal -s -w" };
@@ -35,6 +40,10 @@ try {
   }
   const invalid = structuredClone(provenance); invalid.hashes["upstream.tar.gz"] = "invalid";
   await reject(invalid, /mandatory build provenance/);
+  const missingRecipe = structuredClone(provenance); delete missingRecipe.dependencyRecipe;
+  await reject(missingRecipe, /Dependency recipe provenance/);
+  const alteredRecipe = structuredClone(provenance); alteredRecipe.dependencyRecipe.files['go.mod'].after = "b".repeat(64);
+  await reject(alteredRecipe, /Dependency recipe provenance/);
   const sourceDrift = structuredClone(provenance); sourceDrift.effectiveSourceHashes["README.md"] = "b".repeat(64);
   await reject(sourceDrift, /source inventories disagree/);
   await writeFile(path.join(directory, "api-generator-inventory.json"), "tampered inventory");

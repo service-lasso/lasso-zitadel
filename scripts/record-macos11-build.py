@@ -1,4 +1,6 @@
 import hashlib,json,os,pathlib,subprocess,sys
+sys.dont_write_bytecode = True
+from macos11_dependency_recipe import identity
 root,owned=map(pathlib.Path,sys.argv[1:])
 def sha(p): return hashlib.sha256(p.read_bytes()).hexdigest()
 pins=json.loads((root/'toolchains/macos11/input-pins.json').read_text())
@@ -20,4 +22,5 @@ source=owned/('zitadel-'+pins['upstreamSHA'])
 excluded={'node_modules','.nx','.angular','.artifacts','.git'}
 doc['effectiveSourceHashes']={str(p.relative_to(source)):sha(p) for p in sorted(source.rglob('*'))
                               if p.is_file() and not excluded.intersection(p.relative_to(source).parts)}
+doc['dependencyRecipe'] = identity(root)
 (owned/'artifacts/build-provenance.json').write_text(json.dumps(doc,indent=2)+'\n')

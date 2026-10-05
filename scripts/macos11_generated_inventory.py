@@ -8,6 +8,9 @@ authenticated against upstream.tar.gz by verify_source, not exempted outputs.
 import hashlib
 import pathlib
 import tarfile
+import sys
+sys.dont_write_bytecode = True
+from macos11_dependency_recipe import recipe
 
 EXCLUDED = {'node_modules', '.nx', '.angular', '.artifacts', '.git'}
 EXACT = {
@@ -70,6 +73,7 @@ def verify_generated(inventory, recorded):
         raise SystemExit('Complete generated asset inventory disagreement')
 
 def verify_source(archive_path, inventory):
+    dependencies = recipe()['files']
     original_paths = set()
     with tarfile.open(archive_path) as archive:
         for member in archive.getmembers():
@@ -78,6 +82,10 @@ def verify_source(archive_path, inventory):
             relative = member.name.split('/', 1)[1]
             original_paths.add(relative)
             original = hashlib.sha256(archive.extractfile(member).read()).hexdigest()
+            if relative in dependencies:
+                if original != dependencies[relative]['before'] or inventory.get(relative) != dependencies[relative]['after']:
+                    raise SystemExit('Authenticated dependency source drift: ' + relative)
+                continue
             if inventory.get(relative) != original and not generated(relative):
                 raise SystemExit('Ungenerated upstream source drift: ' + relative)
     for relative in sorted(inventory.keys() - original_paths):

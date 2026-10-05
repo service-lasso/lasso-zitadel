@@ -17,6 +17,7 @@ SOURCE=10b1af91d68700707d41e820545e478cf267511b
 curl -fL "https://codeload.github.com/zitadel/zitadel/tar.gz/$SOURCE" -o "$OWNED/upstream.tar.gz"
 echo "b9e674b87de68541639aef83f6fa4da4fe75d857cce65606a72197acfd0efdfd  $OWNED/upstream.tar.gz" | sha256sum -c -
 tar -xzf "$OWNED/upstream.tar.gz" -C "$OWNED"
+python3 "$ROOT/scripts/macos11_dependency_recipe.py" "$OWNED/zitadel-$SOURCE"
 curl -fL https://go.dev/dl/go1.26.8.linux-amd64.tar.gz -o "$OWNED/go.tar.gz"
 echo "d0f743b33e8d8945e6b1f432edd15785c70507121d6e2a723b21285eddf8b57b  $OWNED/go.tar.gz" | sha256sum -c -
 tar -xzf "$OWNED/go.tar.gz" -C "$OWNED"

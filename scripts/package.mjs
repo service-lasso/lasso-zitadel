@@ -193,6 +193,12 @@ export async function packageMacos11(buildDirectory, releaseVersion) {
   const pins = JSON.parse(await readFile(path.join(repoRoot, "toolchains/macos11/input-pins.json"), "utf8"));
   const assetBytes = await readFile(path.join(buildDirectory, "asset-provenance.json"));
   const assets = JSON.parse(assetBytes.toString("utf8"));
+  const recipeBytes = await readFile(path.join(repoRoot, "toolchains/macos11/dependency-recipe.json"));
+  const dependencyRecipe = JSON.parse(recipeBytes);
+  const dependencyIdentity = { recipeSHA256: createHash("sha256").update(recipeBytes).digest("hex"), patchSHA256: dependencyRecipe.patchSHA256, files: dependencyRecipe.files };
+  if (JSON.stringify(provenance.dependencyRecipe) !== JSON.stringify(dependencyIdentity) || JSON.stringify(assets.dependencyRecipe) !== JSON.stringify(dependencyIdentity)) {
+    throw new Error("Dependency recipe provenance disagreement");
+  }
   if (!provenance.effectiveSourceHashes || JSON.stringify(Object.entries(provenance.effectiveSourceHashes).sort()) !== JSON.stringify(Object.entries(assets.effectiveSourceHashes ?? {}).sort())) {
     throw new Error("Build and asset effective source inventories disagree");
   }
@@ -244,7 +250,7 @@ export async function packageMacos11(buildDirectory, releaseVersion) {
   await mkdir(path.join(repoRoot, "dist"), { recursive: true });
   await writeFile(path.join(repoRoot, "dist/service-darwin-amd64-macos11.json"), `${JSON.stringify(manifest, null, 2)}\n`);
   await writeFile(path.join(packageRoot, "SERVICE-LASSO-PACKAGE.json"), `${JSON.stringify({ serviceId: "zitadel", upstream: { repo: "zitadel/zitadel", version: "v4.14.0", sourceCommit: provenance.upstreamSHA }, packagedBy: "service-lasso/lasso-zitadel", platform: "darwin", arch: "amd64", command: "./zitadel", profile: provenance.profile, binarySource: "custom-source-build", wrapperCommit: provenance.wrapperSHA, binarySHA256: hash }, null, 2)}\n`);
-  await writeFile(path.join(packageRoot, "COMPATIBILITY.txt"), "Custom maintained Go 1.26.8 build of exact ZITADEL v4.14.0 source for Intel macOS 11. This is a separately selected compatibility profile, not an official upstream Darwin binary or official Go macOS 11 support. See build-provenance.json and asset-provenance.json.\n");
+  await writeFile(path.join(packageRoot, "COMPATIBILITY.txt"), "Custom maintained Go 1.26.8 build of ZITADEL v4.14.0 with an authenticated dependency-only security patch for Intel macOS 11. This is a separately selected compatibility profile, not an official upstream Darwin binary or official Go macOS 11 support. See build-provenance.json and asset-provenance.json for the exact dependency recipe.\n");
   return compressPackage(packageRoot, path.join(repoRoot, "dist", assetName), "tar.gz");
 }
 
