@@ -1,0 +1,10 @@
+# SPEC-025: Authenticated gRPC binary security repair
+
+Active; Development; issue #25. Owner /root/fix_zitadel25_grpc_security, clean fix/25-grpc-security from verified develop 4e58034f8a5510dba19fa1b3746817373781506a. Parent owns fresh independent review, landing and hosted/native/authorized publication.
+
+- GRPC-SEC-1: Preserve producer37296885959: full generated Windows ./... source scan exit0; actual unstripped binary scan exit3 on GO-2026-6443 grpc1.83.1 transport.http2Server.HandleStreams. Symbol reachability does not demonstrate a panic exploit; independent source trace identifies ordinary grpc.NewServer, without xDS construction.
+- GRPC-SEC-2: Authenticate immutable upstream10b1af91d68700707d41e820545e478cf267511b archive SHA256 b9e674b87de68541639aef83f6fa4da4fe75d857cce65606a72197acfd0efdfd and regenerate only go.mod/go.sum overlay plus recipe hashes. Parent reconciled fresh investigation before implementation: grpc1.83.2 and only necessary MVS x/net0.58.0, x/crypto0.55.0, x/text0.41.0 changes/checksums. Preserve every other dependency, ordinary source and four custom Go compiler files.
+- GRPC-SEC-3: Run real upstream TestMissingAuthorityAndHostHeader security rejection, TestAuthorityHeader legitimate fallback/precedence and relevant ordinary server controls under available local Go. Record exact versions/results and classify local controls as partial evidence. Preserve repository recipe/inventory/package/publisher checks and official Go1.26.8 hosted benign controls.
+- GRPC-SEC-4: Retain full generated assets, full ./... source and actual unstripped binary scans, symbol custody, native18 and protected owner publisher contracts without skips, filters, waivers or local full Linux builds. Completion of exact product/native/publication acceptance requires parent-owned hosted and consumer evidence.
+
+Traceability: https://github.com/service-lasso/lasso-zitadel/issues/25; GRPC-SEC-1..4 preserve SPEC-010/013/017/018/021/023 boundaries. Source author does not merge, dispatch, mutate shared hosts or declare GA.
