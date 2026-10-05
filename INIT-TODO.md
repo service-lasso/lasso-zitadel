@@ -5,7 +5,8 @@
 - [x] Direct original Linux module evidence identifies affected default package graph; preserve baseline checks.
 - [x] #17 authenticated repair landed c494e83; fresh investigator confirmed shared packaging boundary.
 - [x] Implement AC-018-1..6 shared fail-closed default packaging, three target builds/scans and publisher proof inspection; preserve original baseline and 13 assets.
-- [x] 36 supported-proof and 45 publication rejection checks; existing 6 inventory, 3 security-runner, 18 compatibility packaging and OIDC/browser contract checks passed.
+- [x] 45 supported-proof and 45 publication rejection checks; four actual inspection/CPU groups plus existing 6 inventory, 3 security-runner, 18 compatibility packaging and OIDC/browser contract checks passed. Hosted real benign three-target Go/scanner controls passed.
+- [x] Rebase only onto develop afc7e0a after #21 bridge recipe landing; source recipe remains separately owned.
 - [ ] Distinct independent review and exact-head CI.
 - [ ] Parent-owned exact hosted/native/publication qualification; source implementation does not establish repaired binary acceptance.
 
